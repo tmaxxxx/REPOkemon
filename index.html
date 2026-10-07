@@ -316,7 +316,7 @@ section[hidden] { display: none !important; }
 .slab .ridge { height: 2cqw; margin: 0 8cqw 2.6cqw; border-radius: 1cqw; opacity: .7;
   background: repeating-linear-gradient(90deg, #ffffffb0 0 1px, #ffffff00 1px 3px); box-shadow: inset 0 1px 2px #0003; }
 .slab .lbl {
-  position: relative; display: grid; grid-template-columns: 1fr auto; column-gap: 2cqw; align-items: center;
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 2cqw;   /* minmax : un nom long passe en « … » au lieu de pousser la note */ align-items: center;
   background: linear-gradient(#fff, #f1f1f1); border: .9cqw solid #c8102e; border-radius: 1.6cqw; padding: 2.2cqw 3cqw 2cqw;
   color: #111; font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif; box-shadow: 0 1px 3px #0005;
 }
@@ -507,10 +507,24 @@ details.info > :not(summary) { margin-top: 10px; }
 .hits .slot { width: 100px; }
 
 @media (max-width: 640px) {
-  header { padding: 10px 12px; }
+  /* en-tête sur 2 lignes : logo + argent, puis le menu sur toute la largeur */
+  header { display: grid; grid-template-columns: auto 1fr; gap: 8px 10px; padding: 8px 12px; margin-bottom: 8px; }
   .logo { font-size: 16px; }
-  nav button { padding: 7px 11px; font-size: 14px; }
-  .wallet .money { font-size: 16px; }
+  .wallet { justify-self: end; gap: 8px; }
+  .wallet .money { font-size: 15px; padding: 5px 10px; }
+  .wallet .coll { font-size: 11px; }
+  nav { grid-column: 1 / -1; grid-row: 2; flex-wrap: nowrap; }
+  nav button { flex: 1; padding: 7px 4px; font-size: 13.5px; white-space: nowrap; }
+  /* boosters possédés : une seule ligne qui défile au doigt */
+  .picker { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; margin: 0 -16px; padding: 4px 16px 6px; scrollbar-width: none; }
+  .picker::-webkit-scrollbar { display: none; }
+  .pchip { flex: none; }
+  .pchip:first-child { margin-left: auto; } .pchip:last-child { margin-right: auto; }   /* centré tant que ça tient */
+  /* le booster et les cartes tiennent dans l'écran (svh : hauteur sans la barre d'adresse) */
+  :root { --cw: min(300px, 68vw, calc((100vh - 360px) * 63 / 88)); --cw: min(300px, 68vw, calc((100svh - 360px) * 63 / 88)); }
+  #stage { height: calc(100vh - 250px); height: calc(100svh - 250px); min-height: 360px; }
+  .hint { font-size: 13px; padding: 0 8px; }
+  #summary { justify-content: flex-start; }   /* récap plus haut que l'écran : il défile depuis le haut, rien n'est coupé */
   .prod .pimg { height: 160px; }
   .prod .pimg img { max-height: 160px; }
   .products { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
@@ -538,6 +552,7 @@ details.info > :not(summary) { margin-top: 10px; }
 
   <section id="view-open">
     <div class="picker" id="picker"></div>
+    <div class="nextunlock" id="nextunlock"></div>
     <div id="stage">
       <div id="pack" class="pack">
         <div class="pack-top"><div class="tearline"></div><div class="tearprog"></div></div>
@@ -929,7 +944,10 @@ const pack = document.getElementById("pack"), deck = document.getElementById("de
       controls = document.getElementById("openControls");
 let state = "pack";          // pack -> opening -> deck -> summary
 let current = [], idx = 0, busy = false, newFlags = [];
-const HINT = "Clique sur le booster pour l'ouvrir (ou glisse le long des pointillés pour le déchirer)";
+const TOUCH = matchMedia("(hover: none)").matches;   // téléphone / tablette : on « touche », on ne « clique » pas
+const TAP = TOUCH ? "Touche" : "Clique";
+const HINT = TOUCH ? "Touche le booster pour l'ouvrir (ou glisse le long des pointillés)"
+  : "Clique sur le booster pour l'ouvrir (ou glisse le long des pointillés pour le déchirer)";
 /* save.sel = une série (boosters achetés) ou "free" (boosters gratuits de la série save.freeSet) */
 const FREE = "free";
 const curSet = () => save.sel === FREE ? save.freeSet : save.sel;
@@ -980,9 +998,9 @@ function renderPicker() {
   });
   // la prochaine série à débloquer, pour donner envie de continuer
   const nl = nextLock();
-  picker.insertAdjacentHTML("beforeend", `<div class="nextunlock" style="flex-basis:100%">${nl
+  document.getElementById("nextunlock").innerHTML = `${nl
     ? `Prochaine série : <b>${nl.name}</b> dans ${(nl.unlock - opened()).toLocaleString("fr-FR")} boosters`
-    : "Toutes les séries sont débloquées ✓"}</div>`);
+    : "Toutes les séries sont débloquées ✓"}`;
   if (state === "pack") {
     const has = left() > 0;
     pack.classList.toggle("gone", !has);
@@ -1098,7 +1116,7 @@ function reveal(i) {
     banner(R.label + " !", R.color, priceOf(card) >= 10_00 ? card.name + " · " + fmt(priceOf(card)) : "");
   } else if (lv === 1) burst(cx, cy, [R.color, "#ffffff"], 25, 5);
   if (lv >= 4) { flash(R.color); confetti([R.color, "#ffffff", "#ffd76a", "#4ce08a"]); }
-  hint.textContent = i < current.length - 1 ? `Clique pour la carte suivante (${i + 1}/${current.length})` : "Clique pour voir ton booster";
+  hint.textContent = i < current.length - 1 ? `${TAP} pour la carte suivante (${i + 1}/${current.length})` : `${TAP} pour voir ton booster`;
 }
 
 deck.addEventListener("click", advance);
@@ -1482,7 +1500,7 @@ function sellBar(shown) {
   const n = Object.values(picked).reduce((a, b) => a + b, 0);
   const total = Object.entries(picked).reduce((a, [id, k]) => a + sellPrice(priceOf(BY_ID[id])) * k, 0);
   const bar = document.createElement("div"); bar.className = "sellbar";
-  bar.innerHTML = `<div class="sum">${n ? `${n} carte${n > 1 ? "s" : ""} · <b>+${fmt(total)}</b>` : "Clique sur les cartes à vendre"}</div>`;
+  bar.innerHTML = `<div class="sum">${n ? `${n} carte${n > 1 ? "s" : ""} · <b>+${fmt(total)}</b>` : `${TAP} sur les cartes à vendre`}</div>`;
   const pickAll = (fn, label) => {
     const b = document.createElement("button"); b.className = "btn small ghost"; b.textContent = label;
     b.onclick = () => { shown.forEach(c => { const k = fn(c); if (k > 0) picked[c.id] = k; }); renderBinder(); };
@@ -1660,7 +1678,7 @@ function renderStats() {
   save.hits.forEach(id => { const c = BY_ID[id]; if (!c) return; const s = document.createElement("div"); s.className = "slot"; s.appendChild(cardEl(c, { price: true })); s.onclick = () => openModal(c); hits.appendChild(s); });
   const rb = box.querySelector("#reset");
   rb.onclick = () => {
-    if (!resetArmed) { resetArmed = true; rb.textContent = "Sûr ? Clique encore pour tout effacer"; setTimeout(() => { resetArmed = false; rb.textContent = `Tout recommencer (${fmt(START_MONEY)}, collection vide)`; }, 3000); return; }
+    if (!resetArmed) { resetArmed = true; rb.textContent = `Sûr ? ${TAP} encore pour tout effacer`; setTimeout(() => { resetArmed = false; rb.textContent = `Tout recommencer (${fmt(START_MONEY)}, collection vide)`; }, 3000); return; }
     save = fresh(); persist(); updateCounter(); resetArmed = false; resetStage(); renderStats();
   };
 }
