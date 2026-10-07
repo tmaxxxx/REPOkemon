@@ -22,6 +22,11 @@ Projet perso pour le fun, entièrement codé avec Claude Code. Le nom est un cli
 **Hors ligne** : télécharge le zip de la [dernière release](https://github.com/tmaxxxx/REPOkemon/releases/latest),
 dézippe-le et double-clique sur `index.html`.
 
+**Comme une vraie app**, avec son logo, depuis la version en ligne :
+- **iPhone** (Safari) : bouton Partager → « Sur l'écran d'accueil »
+- **Android** (Chrome) : menu ⋮ → « Ajouter à l'écran d'accueil »
+- **Ordinateur** (Chrome / Edge) : icône « Installer » à droite de la barre d'adresse
+
 Ta partie est sauvegardée automatiquement dans le navigateur. Elle reste liée à ce navigateur (et à ce profil Chrome) :
 la version en ligne et la version téléchargée ont chacune leur propre sauvegarde.
 
