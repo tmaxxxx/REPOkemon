@@ -1,0 +1,1735 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Repokémon</title>
+<meta name="description" content="Ouvre des boosters Pokémon, complète tes master sets et fais grader tes cartes. Gratuit, dans le navigateur.">
+<meta property="og:title" content="Repokémon">
+<meta property="og:description" content="Ouvre des boosters Pokémon, complète tes master sets et fais grader tes cartes. Gratuit, dans le navigateur.">
+<meta property="og:image" content="https://tmaxxxx.github.io/REPOkemon/docs/apercu.jpg">
+<meta property="og:url" content="https://tmaxxxx.github.io/REPOkemon/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+@property --mx { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+@property --my { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+
+:root {
+  --bg: #0b0d17;
+  --bg2: #151826;
+  --surface: #ffffff07;
+  --line: #ffffff12;
+  --gold: #f0c674;
+  --gold2: #c99a3c;
+  --txt: #eceef6;
+  --muted: #8b90a6;
+  --green: #5ad19a;
+  --red: #f2708a;
+  --cw: min(300px, 68vw, calc((100vh - 310px) * 63 / 88));
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  color: var(--txt);
+  background:
+    radial-gradient(1100px 650px at 50% 30%, #222a5c40, transparent 70%),
+    radial-gradient(900px 500px at 90% 110%, #5b3a8a1c, transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+  overflow-x: hidden;
+  user-select: none;
+}
+button { font: inherit; cursor: pointer; }
+
+/* ---------- Header ---------- */
+header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 12px 24px; margin-bottom: 14px;
+  position: sticky; top: 0; z-index: 20;
+  background: #0b0d17d0; border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(16px);
+}
+.logo { font-weight: 800; letter-spacing: -.02em; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+.logo b { color: var(--gold); }
+nav { display: flex; gap: 4px; background: #ffffff06; padding: 4px; border-radius: 999px; flex-wrap: wrap; box-shadow: inset 0 0 0 1px var(--line); }
+nav button {
+  border: 0; background: transparent; color: var(--muted); padding: 7px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+  transition: .2s;
+}
+nav button:hover { color: var(--txt); }
+nav button.on { background: #ffffff14; color: var(--txt); }
+nav button .badge[hidden] { display: none; }
+nav button .badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 4px; border-radius: 9px; background: var(--gold); color: #1d1606; font-size: 11px; line-height: 18px; }
+.wallet { display: flex; gap: 12px; align-items: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.wallet .money {
+  font-weight: 700; letter-spacing: -.01em; font-size: 16px; color: var(--green);
+  background: #5ad19a10; padding: 6px 12px; border-radius: 10px; box-shadow: inset 0 0 0 1px #5ad19a30;
+  transition: transform .15s;
+}
+.wallet .money.bump { transform: scale(1.12); }
+.wallet .money.bad { color: var(--red); background: #f2708a10; box-shadow: inset 0 0 0 1px #f2708a40; }
+.wallet .coll { color: var(--muted); font-size: 12px; font-weight: 500; line-height: 1.25; }
+.wallet .coll b { color: var(--txt); }
+
+main { padding: 0 16px 40px; }
+section[hidden] { display: none !important; }
+
+/* ---------- Stage ---------- */
+#stage {
+  position: relative;
+  height: calc(100vh - 230px); min-height: 460px;
+  display: grid; place-items: center;
+}
+.hint {
+  text-align: center; color: var(--muted); font-weight: 600; min-height: 1.4em; margin-top: 4px;
+  letter-spacing: .3px;
+}
+.controls[hidden] { display: none; }
+.controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.btn {
+  border: 0; border-radius: 12px; padding: 11px 20px; font-weight: 700; font-size: 15px; color: #1d1606;
+  background: var(--gold); box-shadow: 0 8px 24px -10px #f0c674aa;
+  transition: transform .15s, filter .15s, background .15s;
+}
+.btn:hover { filter: brightness(1.07); }
+.btn:active { transform: scale(.97); }
+.btn.ghost { background: #ffffff0a; color: var(--txt); box-shadow: inset 0 0 0 1px #ffffff1c; }
+.btn.ghost:hover { background: #ffffff12; }
+.btn.green { background: var(--green); color: #06231a; box-shadow: 0 8px 24px -10px #5ad19aaa; }
+.btn.small { padding: 7px 13px; border-radius: 10px; font-size: 13px; }
+.btn[disabled] { opacity: .4; pointer-events: none; }
+.btn.nope { animation: nope .4s; }
+@keyframes nope { 20%, 60% { translate: -6px 0; } 40%, 80% { translate: 6px 0; } }
+
+/* ---------- Choix du booster ---------- */
+.picker { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 4px 0 6px; }
+.pchip {
+  display: flex; align-items: center; gap: 8px; border: 0; background: var(--surface); color: var(--txt);
+  padding: 5px 12px 5px 6px; border-radius: 12px; font-weight: 600; font-size: 13px;
+  box-shadow: inset 0 0 0 1px var(--line); transition: .2s;
+}
+.pchip.free { box-shadow: inset 0 0 0 1px #5ad19a66; }
+.pchip.free.on { background: #5ad19a14; box-shadow: inset 0 0 0 1px var(--green); }
+.pchip.free b { color: var(--green); }
+.pchip.free .gift { font-size: 24px; width: 30px; text-align: center; }
+.pchip.free select { font: inherit; font-size: 12px; font-weight: 600; color: var(--txt); background: #ffffff10; border: 0; border-radius: 6px; padding: 3px 4px; margin-left: 4px; }
+.pchip.wait { opacity: .7; cursor: default; }
+.nextunlock { text-align: center; color: var(--muted); font-size: 13px; font-weight: 500; margin-top: 2px; }
+.nextunlock b { color: var(--txt); }
+.lockbox { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); border-radius: 14px; padding: 12px 16px; font-weight: 600; color: var(--muted); font-size: 14px; }
+.lockbox b { color: var(--txt); }
+.lockbox .bar { width: 220px; }
+.pchip img { height: 34px; display: block; filter: drop-shadow(0 3px 4px #0008); }
+.pchip b { color: var(--gold); }
+.pchip.on { background: #ffffff10; box-shadow: inset 0 0 0 1px #f0c67499; }
+.pchip[disabled] { opacity: .35; pointer-events: none; }
+.pchip.free { cursor: pointer; }
+.nopack { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; color: var(--muted); font-weight: 600; }
+.nopack .big { font-weight: 700; letter-spacing: -.02em; font-size: 24px; color: var(--txt); }
+
+/* ---------- Booster (vraie photo, coupée en deux pour la déchirure) ---------- */
+.pack {
+  --cut: .13;
+  position: absolute; height: calc(var(--cw) * 88 / 63 * 1.06); aspect-ratio: var(--ar, .55);
+  cursor: pointer; touch-action: none;
+  animation: float 3.2s ease-in-out infinite;
+  filter: drop-shadow(0 30px 40px #000a);
+}
+.pack.gone { display: none; }
+/* le booster arrête de flotter sous la souris : les pointillés restent sous le curseur */
+.pack:not(.shake):not(.opening):hover { animation-play-state: paused; }
+.pack.near, .pack.tearing { cursor: ew-resize; }
+.pack:hover { filter: drop-shadow(0 30px 40px #000a) brightness(1.06); }
+.pack.near .tearline, .pack.tearing .tearline { opacity: 1; filter: drop-shadow(0 0 6px #fff); }
+@keyframes float { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-14px) rotate(1.5deg); } }
+.pack.shake { animation: shake .5s linear; }
+@keyframes shake {
+  0%,100% { transform: translate(0) rotate(0); }
+  20% { transform: translate(-6px, 2px) rotate(-3deg); }
+  40% { transform: translate(6px, -2px) rotate(3deg); }
+  60% { transform: translate(-4px, 1px) rotate(-2deg); }
+  80% { transform: translate(4px, -1px) rotate(2deg); }
+}
+.pack-top, .pack-body { position: absolute; left: 0; right: 0; background-image: var(--pimg); background-repeat: no-repeat; }
+.pack-top { top: 0; height: calc(var(--cut) * 100%); background-size: 100% calc(100% / var(--cut)); background-position: top;
+  transition: transform .7s cubic-bezier(.5,-0.3,.6,1), opacity .7s; }
+.pack-body { top: calc(var(--cut) * 100%); bottom: 0; background-size: 100% calc(100% / (1 - var(--cut))); background-position: bottom;
+  transition: transform .8s cubic-bezier(.6,0,.8,.4), opacity .8s; }
+/* reflet métallisé qui passe sur l'emballage (masqué par la forme du booster) */
+.pack-top::after, .pack-body::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(120deg, transparent 30%, #ffffff66 45%, transparent 60%) no-repeat;
+  background-size: 250% 100%; mix-blend-mode: overlay;
+  animation: sweep 3.5s ease-in-out infinite;
+}
+.pack-top::after { -webkit-mask: var(--pimg) top / 100% calc(100% / var(--cut)) no-repeat; mask: var(--pimg) top / 100% calc(100% / var(--cut)) no-repeat; }
+.pack-body::after { -webkit-mask: var(--pimg) bottom / 100% calc(100% / (1 - var(--cut))) no-repeat; mask: var(--pimg) bottom / 100% calc(100% / (1 - var(--cut))) no-repeat; }
+@keyframes sweep { 0% { background-position: 130% 0; } 60%,100% { background-position: -130% 0; } }
+.tearline {
+  position: absolute; left: 3%; right: 3%; bottom: 0; height: 3px;
+  background: repeating-linear-gradient(90deg, #fff 0 6px, transparent 6px 11px); opacity: .7;
+}
+.tearprog {
+  position: absolute; left: 3%; bottom: -2px; height: 7px; width: 0; max-width: 94%; pointer-events: none;
+  background: #fff; box-shadow: 0 0 14px #fff, 0 0 30px var(--gold); border-radius: 4px;
+}
+.pack.opening .pack-top { transform: translate(40%, -160%) rotate(28deg); opacity: 0; }
+.pack.opening .pack-body { transform: translateY(85%); opacity: 0; transition-delay: .45s; }
+.pack.opening { animation: none; }
+
+/* ---------- Cards ---------- */
+.card {
+  --rc: #b8c4d6; --holo: .2;
+  position: relative; width: 100%; aspect-ratio: 63 / 88;
+  border-radius: 4.5% / 3.2%;
+  container-type: inline-size;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .4s ease, box-shadow .3s;
+  will-change: transform;
+}
+.card.active { transition: transform .05s linear, box-shadow .3s; }
+.card .face { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; background: #222; }
+.card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.card .shine {
+  position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background:
+    repeating-linear-gradient(115deg,
+      #ff5c8a 0%, #ffd36b 6%, #7dff9b 12%, #5ed8ff 18%, #b58cff 24%, #ff5c8a 30%);
+  background-size: 400% 400%;
+  background-position: var(--mx) var(--my);
+  mix-blend-mode: color-dodge; opacity: var(--holo);
+  filter: brightness(.7) contrast(1.4) saturate(1.2);
+  animation: idleholo 6s ease-in-out infinite alternate;
+}
+.card.active .shine { animation: none; opacity: calc(var(--holo) * 1.1); }
+@keyframes idleholo { from { --mx: 20%; --my: 30%; } to { --mx: 80%; --my: 70%; } }
+.card .glare {
+  position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(circle at var(--mx) var(--my), #ffffff70, #ffffff14 25%, transparent 55%);
+  mix-blend-mode: overlay; opacity: 0; transition: opacity .3s;
+}
+.card.active .glare { opacity: 1; }
+.card.matte .shine { display: none; }          /* carte non holo : pas de reflet arc-en-ciel */
+.card.matte.active .glare { opacity: .45; }    /* juste un léger éclat sous la souris */
+
+/* placeholder (quand l'image n'est pas encore chargée) */
+.ph {
+  position: absolute; inset: 0; padding: 5cqw;
+  display: flex; flex-direction: column; gap: 3cqw;
+  background: linear-gradient(160deg, hsl(var(--h) 70% 62%), hsl(calc(var(--h) + 40) 60% 40%));
+  border: 4cqw solid #f3d35b; border-radius: inherit;
+}
+.ph .top { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; color: #111; }
+.ph .nm { font-size: 8.5cqw; line-height: 1.05; }
+.ph .art {
+  flex: 1; border-radius: 2cqw; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 40%, #ffffff88, #ffffff11 70%), #0002;
+  box-shadow: inset 0 0 0 1.2cqw #0003;
+  font-weight: 700; letter-spacing: -.02em; font-size: 18cqw; color: #fff8; text-shadow: 0 1cqw 0 #0003;
+}
+.ph .bot { display: flex; justify-content: space-between; font-weight: 700; font-size: 6cqw; color: #111c; }
+.ph .bot .sym { color: #111; }
+.face.has-img .ph { display: none; }
+
+/* ---------- Deck (cartes face visible) ---------- */
+#deck { position: absolute; width: var(--cw); aspect-ratio: 63/88; }
+#deck:empty { pointer-events: none; }   /* vide, il ne doit pas cacher le booster aux clics */
+#deck::before {
+  content: ''; position: absolute; inset: 0; border-radius: 4.5% / 3.2%; opacity: 0; transition: opacity .2s;
+}
+#deck.suspense::before { opacity: 1; animation: leak .35s ease-in-out infinite alternate; }
+#deck.suspense.big { animation: bigshake .12s linear infinite; }
+@keyframes leak { from { box-shadow: 0 0 25px 4px var(--rc); } to { box-shadow: 0 0 80px 22px var(--rc); } }
+@keyframes bigshake { 0% { translate: -3px 0; } 50% { translate: 3px 1px; } 100% { translate: -2px -1px; } }
+.fcard {
+  position: absolute; inset: 0; cursor: pointer;
+  transition: transform .55s cubic-bezier(.2,.8,.2,1), opacity .5s;
+}
+.fcard .card { box-shadow: 0 20px 40px #0009; }
+.fcard.enter { transform: translateY(40%) scale(.6) !important; opacity: 0; }
+.fcard.out { transform: translate(-115vw, -8vh) rotate(-28deg) !important; opacity: 0; }
+.fcard.shown.hit .card { animation: glow 1.6s ease-in-out infinite alternate; }
+@keyframes glow { from { box-shadow: 0 0 20px var(--rc), 0 0 50px var(--rc); } to { box-shadow: 0 0 40px var(--rc), 0 0 120px var(--rc); } }
+.fcard.shown.pop .card { animation: cardpop .5s cubic-bezier(.3,1.6,.5,1); }
+.fcard.shown.hit.pop .card { animation: cardpop .5s cubic-bezier(.3,1.6,.5,1), glow 1.6s ease-in-out .5s infinite alternate; }
+@keyframes cardpop { from { scale: .92; } 50% { scale: 1.06; } to { scale: 1; } }
+
+.tag {
+  position: absolute; z-index: 3; top: -12px; right: -12px;
+  font-weight: 700; font-size: 13px; padding: 4px 10px; border-radius: 999px;
+  background: var(--gold); color: #1d1606; box-shadow: 0 4px 14px #0008;
+  transform: rotate(6deg);
+}
+.rlabel {
+  position: absolute; left: 50%; bottom: -50px; transform: translateX(-50%); white-space: nowrap; text-align: center;
+  font-weight: 700; font-size: 15px; color: var(--rc); text-shadow: 0 0 12px var(--rc);
+  opacity: 0; transition: opacity .3s .15s; line-height: 1.25;
+}
+.rlabel .pr { color: var(--green); text-shadow: 0 0 10px #4ce08a88; font-size: 14px; }
+.fcard.shown .rlabel { opacity: 1; }
+.fcard:not(.shown) .tag { display: none; }
+
+/* ---------- Summary ---------- */
+#summary { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; overflow-y: auto; padding: 10px 0; }
+#summary[hidden] { display: none; }
+.sumrow { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; max-width: 1150px; }
+.sumrow .slot { width: clamp(90px, 11vw, 150px); position: relative; animation: pop .5s cubic-bezier(.3,1.5,.5,1) both; }
+@keyframes pop { from { transform: translateY(30px) scale(.7); opacity: 0; } }
+.sumtitle { font-weight: 700; letter-spacing: -.02em; font-size: 26px; text-align: center; }
+.sumval { font-weight: 700; color: var(--muted); text-align: center; }
+.sumval b { color: var(--txt); }
+.sumval .up { color: var(--green); } .sumval .down { color: var(--red); }
+
+/* étiquette de prix sur une carte */
+.price {
+  position: absolute; left: 6px; bottom: 6px; z-index: 3; background: #0b0d17d0; color: #fff; font-weight: 600; font-size: 11px;
+  padding: 2px 7px; border-radius: 6px; pointer-events: none; font-variant-numeric: tabular-nums;
+}
+.price.big { color: #ffe3a3; }
+
+/* ---------- Carte gradée : boîtier en plastique épais façon PSA ---------- */
+/* .slab = conteneur (les tailles en cqw se calculent sur sa largeur), .case = le boîtier dessiné */
+.slab {
+  --rx: 0deg; --ry: 0deg; position: relative; container-type: inline-size;
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .4s ease;
+}
+.slab .case {
+  position: relative; padding: 3.5cqw 5cqw 5.5cqw; border-radius: 4.5cqw;
+  background: linear-gradient(135deg, #eef4fb70, #b7c5d84a 38%, #dfe8f266 70%, #f4f8fc7a);
+  border: 1px solid #ffffffc0;
+  box-shadow: inset 0 0 0 1.4cqw #ffffff1f, inset 0 1px 0 #fff, inset 0 -3px 6px #00000040, 0 12px 30px #000a;
+}
+.slab.active { transition: transform .05s linear; }
+/* les petites rainures en haut du boîtier */
+.slab .ridge { height: 2cqw; margin: 0 8cqw 2.6cqw; border-radius: 1cqw; opacity: .7;
+  background: repeating-linear-gradient(90deg, #ffffffb0 0 1px, #ffffff00 1px 3px); box-shadow: inset 0 1px 2px #0003; }
+.slab .lbl {
+  position: relative; display: grid; grid-template-columns: 1fr auto; column-gap: 2cqw; align-items: center;
+  background: linear-gradient(#fff, #f1f1f1); border: .9cqw solid #c8102e; border-radius: 1.6cqw; padding: 2.2cqw 3cqw 2cqw;
+  color: #111; font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif; box-shadow: 0 1px 3px #0005;
+}
+.slab .lbl .t { font-size: 4.1cqw; font-weight: 700; text-transform: uppercase; line-height: 1.28; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slab .lbl .nm { font-size: 5.3cqw; font-weight: 900; }
+.slab .lbl .gr { text-align: right; text-transform: uppercase; padding-right: 1.2cqw; }
+.slab .lbl .gn { display: block; font-size: 4.1cqw; font-weight: 800; }
+.slab .lbl .gd { display: block; letter-spacing: -.04em; font-size: 12cqw; font-weight: 900; line-height: .95; font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif; }
+.slab .lbl .foot { grid-column: 1 / -1; display: flex; align-items: center; gap: 2cqw; margin-top: 1.4cqw; }
+.slab .lbl .holo {
+  width: 10cqw; height: 5cqw; border-radius: .8cqw; display: grid; place-items: center;
+  font: 900 2.6cqw 'Arial Black', Arial, sans-serif; color: #fffc; letter-spacing: .02em;
+  background: linear-gradient(120deg, #ff9ad5, #9ae6ff, #c8ffa8, #ffe38a, #ff9ad5); background-size: 300% 100%;
+  animation: holo 5s linear infinite; box-shadow: inset 0 0 0 1px #fff8;
+}
+@keyframes holo { to { background-position: 300% 0; } }
+.slab .lbl .bar { flex: 1; height: 4cqw; opacity: .85;
+  background: repeating-linear-gradient(90deg, #111 0 1px, #0000 1px 2px, #111 2px 4px, #0000 4px 5px, #111 5px 6px, #0000 6px 8px, #111 8px 9px, #0000 9px 11px); }
+.slab .lbl .cert { font-size: 3.5cqw; font-weight: 700; color: #555; }
+/* le logement de la carte : creusé dans le plastique */
+.slab .well { margin-top: 3.6cqw; padding: 2.4cqw; border-radius: 2.6cqw; background: #0a0f1e2e;
+  box-shadow: inset 0 2px 7px #0008, inset 0 0 0 1px #ffffff5c, 0 1px 0 #ffffff80; }
+.slab .card { box-shadow: 0 2px 6px #0007; }
+/* reflets du plastique, par-dessus tout */
+.slab .gloss { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; overflow: hidden;
+  background: linear-gradient(115deg, #ffffff5e 0%, #ffffff14 20%, #fff0 38%, #fff0 60%, #ffffff1f 76%, #fff0 90%); }
+.slab.active .gloss { background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), #ffffff40, #fff0 45%),
+  linear-gradient(115deg, #ffffff5e 0%, #ffffff14 20%, #fff0 38%, #fff0 60%, #ffffff1f 76%, #fff0 90%); }
+.slab .gloss::after { content: ""; position: absolute; inset: -10% auto -10% 0; width: 35%; transform: translateX(-150%) skewX(-18deg);
+  background: linear-gradient(90deg, #fff0, #ffffffb0, #fff0); }
+.slab.g10 .case { box-shadow: inset 0 0 0 1.4cqw #ffffff1f, inset 0 1px 0 #fff, inset 0 -3px 6px #00000040, 0 0 24px #ffd76a99, 0 12px 30px #000a; }
+.slab .price { left: 8cqw; bottom: 8cqw; z-index: 3; }
+.mcard.slabbed { width: min(340px, 80vw, calc((100vh - 270px) * .62)); }
+/* mise en boîtier : le boîtier arrive, la carte glisse dedans, reflet, puis l'étiquette s'imprime et la note apparaît */
+.slab.reveal { animation: caseIn .45s ease-out both; }
+.slab.reveal .card { animation: insert .85s .35s cubic-bezier(.2, .9, .3, 1) both; }
+.slab.reveal .gloss::after { animation: sweep .9s 1.15s ease-in-out both; }
+.slab.reveal .lbl { animation: print .8s 1.5s ease-out both; }
+.slab.reveal .gr { animation: gradeIn .55s 2.35s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes caseIn { from { opacity: 0; transform: perspective(900px) translateY(16px) scale(.94); } }
+@keyframes insert { from { opacity: 0; transform: translateY(-115%) scale(1.04); } 55% { opacity: 1; } 88% { transform: translateY(1.5%); } }
+@keyframes sweep { to { transform: translateX(420%) skewX(-18deg); } }
+@keyframes print { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes gradeIn { from { opacity: 0; transform: scale(2.2); } }
+.catbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 4px 0 12px; }
+.catbar .grow { flex: 1; }
+.slot .mine { position: absolute; top: 6px; right: 6px; z-index: 3; background: var(--green); color: #032611; font-weight: 700; font-size: 11px; padding: 1px 6px; border-radius: 8px; }
+.slot .odds { text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+.graded-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+/* ---------- FX ---------- */
+#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+#flash { position: fixed; inset: 0; pointer-events: none; z-index: 49; background: var(--fc, #fff); opacity: 0; }
+#flash.go { animation: flash .9s ease-out; }
+@keyframes flash { 0% { opacity: .85; } 100% { opacity: 0; } }
+#banner {
+  position: fixed; left: 50%; top: 18%; z-index: 51; pointer-events: none;
+  font-weight: 700; letter-spacing: -.02em; font-size: clamp(26px, 5vw, 56px); text-align: center; line-height: 1.05;
+  color: #fff; text-shadow: 0 0 28px var(--bc), 0 2px 12px #000a;
+  transform: translate(-50%, 0) scale(0); opacity: 0; width: 92vw;
+}
+#banner small { display: block; font-size: .42em; font-weight: 600; letter-spacing: 0; color: var(--green); text-shadow: 0 2px 12px #000a; margin-top: 8px; }
+#banner.go { animation: banner 2.4s cubic-bezier(.2,1.4,.4,1) forwards; }
+@keyframes banner {
+  0% { transform: translate(-50%, 0) scale(0) rotate(-8deg); opacity: 0; }
+  15% { transform: translate(-50%, 0) scale(1.1) rotate(2deg); opacity: 1; }
+  25% { transform: translate(-50%, 0) scale(1) rotate(0); }
+  80% { opacity: 1; }
+  100% { transform: translate(-50%, -30px) scale(1); opacity: 0; }
+}
+#toast {
+  position: fixed; left: 50%; bottom: 24px; z-index: 60; transform: translate(-50%, 140%); transition: transform .35s cubic-bezier(.3,1.4,.5,1);
+  background: #191c2bf2; border-radius: 12px; padding: 11px 18px; font-weight: 600; font-size: 14px; box-shadow: 0 10px 40px #000a, inset 0 0 0 1px #ffffff18;
+  max-width: calc(100vw - 32px); text-align: center; opacity: 0;
+}
+#toast.on { transform: translate(-50%, 0); opacity: 1; }
+
+/* ---------- Chips / sélecteur de série ---------- */
+.filters, .setchips { display: flex; gap: 6px; flex-wrap: wrap; }
+.setchips { justify-content: center; margin: 4px auto 26px; max-width: 1300px; }
+.chip { border: 0; padding: 6px 13px; border-radius: 999px; background: transparent; color: var(--muted); font-weight: 600; font-size: 13px;
+  box-shadow: inset 0 0 0 1px var(--line); transition: .15s; }
+.chip:hover { color: var(--txt); }
+.chip.on { background: #ffffff14; color: var(--txt); box-shadow: inset 0 0 0 1px #ffffff2a; }
+.chip small { opacity: .7; margin-left: 4px; }
+
+/* ---------- Boutique ---------- */
+.shop { max-width: 1200px; margin: 0 auto; }
+.sethero { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; justify-content: space-between; margin-bottom: 14px; }
+.sethero h2 { font-weight: 800; letter-spacing: -.03em; font-size: 30px; margin: 0; color: var(--txt); display: flex; align-items: center; gap: 12px; }
+.sethero h2::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--sc); box-shadow: 0 0 14px var(--sc); }
+.sethero p { margin: 6px 0 0; color: var(--muted); font-weight: 500; font-size: 15px; max-width: 640px; }
+.products { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.prod {
+  background: var(--surface); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 8px;
+  box-shadow: inset 0 0 0 1px var(--line); transition: background .2s;
+}
+.prod:hover { background: #ffffff0b; }
+.prod .pimg { height: 210px; display: grid; place-items: center; }
+.prod .pimg img { max-height: 210px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 16px 20px #000a); transition: transform .3s; }
+.prod:hover .pimg img { transform: translateY(-6px) rotate(-2deg) scale(1.03); }
+.prod .pname { font-weight: 700; }
+.prod .psub { color: var(--muted); font-weight: 500; font-size: 13px; }
+.prod .pprice { font-weight: 700; letter-spacing: -.02em; font-size: 21px; color: var(--txt); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.prod .pprice small { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0; display: block; }
+.prod .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.prod .owned { font-size: 13px; color: var(--gold); font-weight: 700; min-height: 1.2em; }
+.shop h3 { font-weight: 600; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 44px 0 14px; }
+.inv { display: grid; gap: 10px; }
+.invrow { display: flex; align-items: center; gap: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); border-radius: 14px; padding: 10px 14px; flex-wrap: wrap; }
+.invrow img { height: 64px; filter: drop-shadow(0 6px 8px #0009); }
+.invrow .grow { flex: 1; min-width: 160px; }
+.invrow .t { font-weight: 700; }
+.invrow .s { color: var(--muted); font-weight: 600; font-size: 13px; }
+.note { color: var(--muted); font-size: 13px; font-weight: 500; line-height: 1.6; padding: 4px 2px 0; }
+details.info { margin-top: 14px; }
+details.info summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600; list-style: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 0; }
+details.info summary::-webkit-details-marker { display: none; }
+details.info summary::before { content: "›"; display: inline-block; transition: transform .2s; font-size: 16px; line-height: 1; }
+details.info[open] summary::before { transform: rotate(90deg); }
+details.info summary:hover { color: var(--txt); }
+details.info > :not(summary) { margin-top: 10px; }
+.note a { color: var(--muted); }
+
+/* ---------- Classeur ---------- */
+.binder-head { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; max-width: 1300px; margin: 0 auto 18px; }
+.prog { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; }
+.prog div { font-weight: 600; color: var(--muted); }
+.prog b { color: var(--txt); }
+.bar { height: 6px; width: 160px; border-radius: 9px; background: #ffffff10; overflow: hidden; margin-top: 6px; }
+.bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold2), var(--gold)); border-radius: 9px; }
+.bactions { display: flex; gap: 8px; flex-wrap: wrap; max-width: 1300px; margin: 0 auto 18px; }
+.reward { color: var(--muted); font-size: 12px; font-weight: 500; }
+/* mode vente : sélection de cartes */
+.selling .slot { cursor: copy; }
+.slot.picked { outline: 3px solid var(--green); outline-offset: 3px; border-radius: 6px; }
+.slot .pick {
+  position: absolute; top: 6px; left: 6px; z-index: 3; background: var(--green); color: #032611; font-weight: 700; font-size: 12px;
+  padding: 2px 7px; border-radius: 8px;
+}
+.sellbar {
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 30; width: min(760px, calc(100% - 24px));
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: center;
+  background: #151826ee; backdrop-filter: blur(14px); border: 1px solid #5ad19a40; border-radius: 16px; padding: 10px 12px;
+  box-shadow: 0 12px 40px #000a;
+}
+.sellbar .sum { font-weight: 700; margin-right: auto; }
+.sellbar .sum b { color: var(--green); }
+.selling #binder { padding-bottom: 110px; }
+.bsec { max-width: 1300px; margin: 0 auto 30px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 12px; }
+.slot { position: relative; cursor: pointer; }
+.slot .count {
+  position: absolute; bottom: 6px; right: 6px; z-index: 3; background: #000c; color: #fff; font-weight: 700; font-size: 12px;
+  padding: 2px 7px; border-radius: 8px;
+}
+.slot.missing {
+  aspect-ratio: 63/88; border-radius: 4.5% / 3.2%; cursor: default;
+  border: 1px dashed #ffffff18; background: #ffffff04;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 8px;
+  color: #ffffff40; font-weight: 600; font-size: 12px; gap: 4px;
+}
+.slot.missing .n { font-weight: 700; letter-spacing: -.02em; font-size: 18px; color: #ffffff30; }
+.empty { color: var(--muted); padding: 30px; text-align: center; font-weight: 600; }
+
+/* ---------- Modal ---------- */
+#modal { position: fixed; inset: 0; z-index: 40; background: #05061099; backdrop-filter: blur(8px); display: grid; place-items: center; padding: 20px; }
+#modal[hidden] { display: none; }
+.mwrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.mcard { width: min(360px, 80vw, calc((100vh - 220px) * 63 / 88)); }
+.minfo { text-align: center; font-weight: 600; line-height: 1.5; }
+.minfo .r { color: var(--rc); }
+.minfo .cote { font-weight: 700; letter-spacing: -.02em; color: var(--green); font-size: 22px; }
+
+/* ---------- Stats ---------- */
+.stats { max-width: 960px; margin: 10px auto; display: grid; gap: 16px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); border-radius: 16px; padding: 16px 18px; }
+.tile .v { font-weight: 700; letter-spacing: -.02em; font-size: 22px; font-variant-numeric: tabular-nums; }
+.tile .v.up { color: var(--green); } .tile .v.down { color: var(--red); }
+.tile .l { color: var(--muted); font-weight: 500; font-size: 12px; margin-top: 2px; }
+.rtable { width: 100%; border-collapse: collapse; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); border-radius: 14px; overflow: hidden; font-size: 14px; font-weight: 500; }
+.rtable td, .rtable th { padding: 9px 14px; text-align: left; }
+.rtable th { color: var(--muted); font-size: 12px; font-weight: 600; }
+.rtable tr + tr td { border-top: 1px solid #ffffff10; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: var(--rc); box-shadow: 0 0 8px var(--rc); }
+.hits { display: flex; gap: 10px; flex-wrap: wrap; }
+.hits .slot { width: 100px; }
+
+@media (max-width: 640px) {
+  header { padding: 10px 12px; }
+  .logo { font-size: 16px; }
+  nav button { padding: 7px 11px; font-size: 14px; }
+  .wallet .money { font-size: 16px; }
+  .prod .pimg { height: 160px; }
+  .prod .pimg img { max-height: 160px; }
+  .products { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><b>Repo</b>kémon</div>
+  <nav>
+    <button data-view="shop">Boutique</button>
+    <button data-view="open" class="on">Ouvrir <span class="badge" id="cPacks">0</span></button>
+    <button data-view="binder">Classeur</button>
+    <button data-view="stats">Stats</button>
+  </nav>
+  <div class="wallet">
+    <div class="money" id="money">0 $</div>
+    <div class="coll">Collection<br><b id="collVal">0 $</b></div>
+  </div>
+</header>
+
+<main>
+  <section id="view-shop" hidden></section>
+
+  <section id="view-open">
+    <div class="picker" id="picker"></div>
+    <div id="stage">
+      <div id="pack" class="pack">
+        <div class="pack-top"><div class="tearline"></div><div class="tearprog"></div></div>
+        <div class="pack-body"></div>
+      </div>
+      <div id="deck"></div>
+      <div id="summary" hidden></div>
+    </div>
+    <div class="hint" id="hint"></div>
+    <div class="controls" id="openControls">
+      <button class="btn ghost" id="btnFast">⚡ Ouvrir ×10 (rapide)</button>
+    </div>
+  </section>
+
+  <section id="view-binder" hidden>
+    <div class="setchips" id="binderSets"></div>
+    <div class="binder-head">
+      <div class="prog" id="prog"></div>
+      <div class="filters" id="filters"></div>
+    </div>
+    <div class="bactions" id="bactions"></div>
+    <div id="binder"></div>
+  </section>
+
+  <section id="view-stats" hidden>
+    <div class="stats" id="stats"></div>
+  </section>
+</main>
+
+<div id="modal" hidden></div>
+<div id="flash"></div>
+<div id="banner"></div>
+<div id="toast"></div>
+<canvas id="fx"></canvas>
+
+<script src="data.js"></script>
+<script>
+/* =====================================================================
+   RARETÉS (toutes séries confondues)
+   rank : 0-1 = carte normale · 2+ = hit (brille, bannière) · 4+ = flash + confettis
+   holo : intensité du reflet arc-en-ciel (0 = la carte ne brille pas : tout ce qui n'est pas au moins holo)
+   ===================================================================== */
+const RARITY = {
+  C:    { label: "Commune",                    sym: "●",   color: "#b8c4d6", rank: 0, holo: 0 },
+  U:    { label: "Peu commune",                sym: "◆",   color: "#9fd3b0", rank: 0, holo: 0 },
+  E:    { label: "Énergie",                    sym: "◆",   color: "#9fe870", rank: 0, holo: 0 },
+  R:    { label: "Rare",                       sym: "★",   color: "#5ec8ff", rank: 1, holo: 0 },
+  PR:   { label: "Pikachu Rare",               sym: "⚡",  color: "#ffd21f", rank: 1, holo: 0 },
+  H:    { label: "Rare Holo",                  sym: "★H",  color: "#7fb8ff", rank: 2, holo: .34 },
+  V:    { label: "Rare Holo V",                sym: "V",   color: "#8fe3ff", rank: 2, holo: .32 },
+  EX:   { label: "Rare Holo EX",               sym: "EX",  color: "#4fd1ff", rank: 2, holo: .34 },
+  DR:   { label: "Double Rare",                sym: "★★",  color: "#c77dff", rank: 2, holo: .32 },
+  ACE:  { label: "High-Tech Rare",             sym: "◈",   color: "#ff6b6b", rank: 2, holo: .3 },
+  VMAX: { label: "Rare Holo VMAX",             sym: "VMAX",color: "#ff9f43", rank: 3, holo: .38 },
+  IR:   { label: "Illustration Rare",          sym: "★",   color: "#ffa53a", rank: 3, holo: .34 },
+  UR:   { label: "Ultra Rare",                 sym: "★★",  color: "#e0e6f0", rank: 3, holo: .38 },
+  CC:   { label: "Collection Classique",       sym: "★C",  color: "#f0c96a", rank: 3, holo: .3 },
+  SR:   { label: "Secrète Arc-en-ciel",        sym: "✦",   color: "#ff7ad9", rank: 3, holo: .48 },
+  GR:   { label: "Hyper Rare Gold",            sym: "★★★", color: "#ffd700", rank: 4, holo: .45 },
+  SIR:  { label: "Illustration Spéciale Rare", sym: "★★",  color: "#ff4fa0", rank: 4, holo: .45 },
+  AA:   { label: "Alternative",                sym: "★A",  color: "#34e0a1", rank: 4, holo: .42 },
+  FR:   { label: "Futuriste Rare",             sym: "✦",   color: "#2ff5c8", rank: 5, holo: .52 },
+  AAS:  { label: "Alternative Secrète",        sym: "✦A",  color: "#ff2e63", rank: 5, holo: .52 },
+};
+
+/* =====================================================================
+   SÉRIES : contenu d'un booster + taux de drop RÉELS relevés par la communauté
+   (probabilité par booster). Slot "HIT" : une seule chance par booster,
+   sinon on reçoit la carte "fallback".
+   Sources : TCGplayer (151 : 95 % IC ; Évolution Céleste : 8 000 boosters ; 30e Anniversaire),
+   Évolutions Prismatiques (taux publiés au lancement), WOTC 1999 (holo ≈ 1 booster sur 3),
+   Primo-Choc et Explosion Plasma (ThePriceDex, données communautaires).
+   ===================================================================== */
+const SETS = [
+  { id: "30th", unlock: 0, name: "30e Anniversaire", year: 2026, color: "#ffd76a", booster: "696613",
+    desc: "Le set anniversaire : 30 Pikachu à collectionner, la Collection Classique et les Futuristes.",
+    order: ["E", "C", "C", "C/R", "HIT", "PR"],
+    hit: [["DR", 1/4.4], ["IR", .1972], ["CC", 1/10.5], ["SIR", .0488], ["FR", 1/100]], fallback: "R" },
+  { id: "151", unlock: 0, name: "Écarlate et Violet — 151", year: 2023, color: "#ff5c7a", booster: "504467",
+    desc: "Les 151 Pokémon de Kanto. La chasse : Dracaufeu-ex Illustration Spéciale Rare.",
+    order: ["C", "C", "C", "C", "U", "U", "U", "REV", "REV", "HIT"],
+    hit: [["DR", .1328], ["IR", .0850], ["UR", .0644], ["SIR", .0311], ["GR", .0194]], fallback: "R" },
+  { id: "pre", unlock: 0, name: "Évolutions Prismatiques", year: 2025, color: "#c77dff", booster: "593294",
+    desc: "Le set Évoli le plus chassé de l'ère Écarlate et Violet. 32 SIR, dont Noctali-ex.",
+    order: ["C", "C", "C", "C", "U", "U", "U", "REV", "REV", "HIT"],
+    hit: [["DR", 1/6], ["UR", 1/13], ["ACE", 1/21], ["SIR", 1/45], ["GR", 1/180]], fallback: "R" },
+  { id: "evs", unlock: 100, name: "Évolution Céleste", year: 2021, color: "#5ec8ff", booster: "244337",
+    desc: "Le meilleur set moderne selon les collectionneurs : les Alternatives, et le mythique « Moonbreon » (Noctali VMAX 215).",
+    order: ["C", "C", "C", "C", "C", "U", "U", "U", "REV", "HIT"],
+    hit: [["H", .22], ["V", .1056], ["VMAX", .0560], ["UR", .0278], ["AA", .0110], ["GR", .0091], ["SR", .0084], ["AAS", .0030]], fallback: "R" },
+  { id: "primo", unlock: 250, name: "Primo-Choc", year: 2015, color: "#ff6a3d", booster: "97751",
+    desc: "XY, Hoenn à l'honneur : Primo-Kyogre et Primo-Groudon. Les EX Full Art sont la vraie chasse.",
+    order: ["C", "C", "C", "C", "C", "U", "U", "U", "REV", "HIT"],
+    hit: [["H", 1/6.4], ["EX", 1/9], ["UR", 1/17], ["GR", 1/125]], fallback: "R" },
+  { id: "plasma", unlock: 500, name: "Explosion Plasma", year: 2013, color: "#4f8bff", booster: "98573",
+    desc: "Noir et Blanc, la Team Plasma. Le Graal : Palkia-EX et Dialga-EX Full Art.",
+    order: ["C", "C", "C", "C", "C", "U", "U", "U", "REV", "HIT"],
+    hit: [["H", 1/4.2], ["EX", 1/18], ["ACE", 1/24], ["UR", 1/35.5], ["GR", 1/112.5]], fallback: "R" },
+  { id: "fossile", unlock: 1000, name: "Fossile", year: 1999, color: "#d9b26a", booster: "138134",
+    desc: "Troisième extension de l'histoire (édition illimitée). Ectoplasma, Dracolosse, Lokhlass holo.",
+    order: ["C", "C", "C", "C", "C", "C", "C", "U", "U", "U", "HIT"],
+    hit: [["H", 1/3]], fallback: "R" },
+  { id: "base", unlock: 1500, name: "Set de Base", year: 1999, color: "#ffcb05", booster: "138130",
+    desc: "Là où tout a commencé (édition illimitée). Le Graal : Dracaufeu holo 4/102.",
+    order: ["E", "C", "C", "C", "C", "C", "C", "U", "U", "U", "HIT"],
+    hit: [["H", 1/3]], fallback: "R" },
+];
+const SET = Object.fromEntries(SETS.map(s => [s.id, s]));
+/* une série se débloque quand on a ouvert assez de boosters, toutes séries confondues (seuil "unlock") */
+
+/* ---------- Cartes & produits (data.js) ---------- */
+const CARDS = CARD_DATA.map(([id, set, order, num, name, rarity, price, img, tcg]) =>
+  ({ id, set, order, num, name, rarity, price: Math.round(price * 100), img, tcg }));
+const BY_ID = Object.fromEntries(CARDS.map(c => [c.id, c]));
+const POOL = {};   // POOL[série][rareté] = [cartes]
+CARDS.forEach(c => ((POOL[c.set] ||= {})[c.rarity] ||= []).push(c));
+
+const KIND = { booster: "Booster", bundle: "Bundle", etb: "Coffret Dresseur d'Élite", display: "Display" };
+const PRODUCTS = PRODUCT_DATA.map(([set, id, kind, packs, price]) =>
+  ({ set, id: String(id), kind, packs, price: Math.round(price * 100), img: `produits/${id}.webp`,
+     name: KIND[kind], sub: packs > 1 ? packs + " boosters" : SET[set].order.length + " cartes" }));
+const PROD = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+const boosterOf = setId => PRODUCTS.find(p => p.set === setId && p.kind === "booster");
+/* un booster en vrac vaut le prix par booster le plus bas de la série :
+   sinon acheter un bundle et revendre ses boosters à l'unité ferait de l'argent à l'infini */
+const looseValue = setId => Math.min(...PRODUCTS.filter(p => p.set === setId).map(p => Math.floor(p.price / p.packs)));
+
+const START_MONEY = 1000000_00;  // argent de départ (en centimes)
+/* boosters gratuits : 10 d'un coup ; quand ils sont tous ouverts, les 10 suivants arrivent 30 min plus tard */
+const FREE_COUNT = 10, FREE_EVERY = 30 * 60 * 1000;
+const FAST_FEE = 200_00;         // frais de l'ouverture ×10 : ça pousse à ouvrir à la main
+const DAILY_GIFT = 2000_00;      // cadeau du jour (une fois par jour)
+const FREE_CASH = 250_00;        // argent offert à chaque recharge des boosters gratuits (toutes les 30 min)
+/* récompenses de collection, une seule fois par série et par palier */
+const REWARDS = [[25, 250_00], [50, 750_00], [100, 2500_00]];
+const PIKA_REWARD = 1000_00;     // les 30 Pikachu du 30e Anniversaire
+/* GRADING : 100 $ par carte, note tirée au hasard entre 5 et 10.
+   [note, nom, probabilité, multiplicateur de cote] : un 10 triple la cote, un 9 la multiplie par 1,5,
+   un 8 ou un 7 ne change rien, un 6 ou un 5 la baisse un peu. Moyenne : ×1,21, donc grader une
+   petite carte fait perdre de l'argent ; ça ne vaut le coup que sur les grosses cartes. */
+const GRADE_COST = 100_00;
+const GRADES = [[10, "GEM MT", .08, 3], [9, "MINT", .20, 1.5], [8, "NM-MT", .30, 1], [7, "NM", .22, 1], [6, "EX-MT", .13, .8], [5, "EX", .07, .65]];
+const GRADE = Object.fromEntries(GRADES.map(g => [g[0], g]));
+const GRADER = "RKG";            // « Repokémon Grading », notre PSA maison
+const SELL_RATE = 1;             // revente = 100 % de la cote, sans frais
+
+/* =====================================================================
+   SAUVEGARDE (les montants sont en centimes de dollar)
+   ===================================================================== */
+const SAVE_KEY = "booster-sim-v3";   // v2.1 : nouvelle partie pour tout le monde (progression par déblocage)
+const fresh = () => ({ money: START_MONEY, owned: {}, packs: {}, pulled: {}, hits: [], boosters: {}, sealed: {},
+  spent: 0, earned: 0, bonus: 0, rewards: {}, gift: "", graded: [], prices: {}, priceDate: {}, sel: "free",
+  free: FREE_COUNT, freeAt: 0, freeSet: "30th", unlocked: [], startMoney: START_MONEY });
+let save = fresh();
+/* index.html#nouvelle-partie : repart de zéro */
+if (location.hash === "#nouvelle-partie") {
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  history.replaceState(null, "", location.pathname);
+}
+try {
+  const s = JSON.parse(localStorage.getItem(SAVE_KEY));
+  if (s) save = Object.assign(save, { startMoney: null }, s);
+} catch (e) {}
+/* quand l'argent de départ augmente, les parties en cours reçoivent une fois la différence
+   (startMoney = le départ déjà reçu ; les parties d'avant ce champ ont démarré à 10 000 $, ou 50 000 $ si start50k) */
+let topUp = 0;
+if (save.startMoney !== START_MONEY) {
+  const had = save.startMoney ?? (save.start50k ? 50000_00 : 10000_00);
+  topUp = Math.max(0, START_MONEY - had); save.money += topUp; save.startMoney = START_MONEY;
+}
+function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- Argent ---------- */
+const fmt = c => {
+  const v = c / 100;
+  return v.toLocaleString("fr-FR", { minimumFractionDigits: v >= 1000 || Number.isInteger(v) ? 0 : 2, maximumFractionDigits: v >= 1000 ? 0 : 2 }) + " $";
+};
+const priceOf = card => save.prices[card.id] ?? card.price;
+const sellPrice = c => Math.max(1, Math.round(c * SELL_RATE));
+/* cartes gradées : save.graded = [{ u: identifiant unique, id: carte, g: note }] */
+const gradedOf = id => save.graded.filter(x => x.id === id).sort((a, b) => b.g - a.g);
+const has = id => !!save.owned[id] || save.graded.some(x => x.id === id);
+const gradedPrice = x => Math.round(priceOf(BY_ID[x.id]) * GRADE[x.g][3]);
+const ownedValue = () => Object.entries(save.owned).reduce((a, [id, n]) => a + (BY_ID[id] ? priceOf(BY_ID[id]) * n : 0), 0) +
+  save.graded.reduce((a, x) => a + (BY_ID[x.id] ? gradedPrice(x) : 0), 0);
+const sealedValue = () =>
+  Object.entries(save.sealed).reduce((a, [id, n]) => a + (PROD[id] ? PROD[id].price * n : 0), 0) +
+  Object.entries(save.boosters).reduce((a, [s, n]) => a + looseValue(s) * n, 0);
+const opened = () => Object.values(save.packs).reduce((a, b) => a + b, 0);
+const isUnlocked = id => opened() >= SET[id].unlock;
+const nextLock = () => SETS.filter(s => !isUnlocked(s.id)).sort((a, b) => a.unlock - b.unlock)[0];
+function pay(c) {
+  if (save.money < c) return false;
+  save.money -= c; save.spent += c; return true;
+}
+function gain(c) { save.money += c; save.earned += c; }
+function bonus(c) { save.money += c; save.bonus += c; }
+
+/* =====================================================================
+   TIRAGE
+   ===================================================================== */
+const rnd = arr => arr[Math.floor(Math.random() * arr.length)];
+function rollHit(set) {
+  let x = Math.random();
+  for (const [r, p] of set.hit) { if (x < p) return r; x -= p; }
+  return set.fallback;
+}
+function makePack(setId) {
+  const set = SET[setId], pool = POOL[setId];
+  const used = new Set();   // jamais deux fois la même carte dans un booster
+  const pick = r => {
+    const list = pool[r].filter(c => !used.has(c.id));
+    const c = rnd(list.length ? list : pool[r]); used.add(c.id); return c;
+  };
+  return set.order.map(slot => {
+    if (slot === "C/R") return pick(Math.random() < 1/3 ? "R" : "C");
+    if (slot === "REV") { const x = Math.random(); return pick(x < .15 ? "R" : x < .5 ? "U" : "C"); }
+    if (slot === "HIT") return pick(rollHit(set));
+    return pick(slot);
+  });
+}
+/* nombre moyen de cartes de chaque rareté dans un booster (mêmes règles que makePack) */
+function perPack(setId) {
+  const set = SET[setId], e = {}, add = (r, k) => e[r] = (e[r] || 0) + k;
+  for (const slot of set.order) {
+    if (slot === "C/R") { add("R", 1/3); add("C", 2/3); }
+    else if (slot === "REV") { add("R", .15); add("U", .35); add("C", .5); }
+    else if (slot === "HIT") { let rest = 1; for (const [r, p] of set.hit) { add(r, p); rest -= p; } add(set.fallback, rest); }
+    else add(slot, 1);
+  }
+  return e;
+}
+const PER_PACK = Object.fromEntries(SETS.map(s => [s.id, perPack(s.id)]));
+const oddsText = k => k >= .5 ? `≈ ${String(+k.toFixed(1)).replace(".", ",")} par booster` : `1 booster sur ${Math.round(1 / k).toLocaleString("fr-FR")}`;
+/* chance de tirer CETTE carte précise : la rareté est répartie entre toutes ses cartes */
+const cardOdds = c => "Chance de la tirer : " + oddsText(PER_PACK[c.set][c.rarity] / POOL[c.set][c.rarity].length);
+
+/* niveau d'effets d'une carte : sa rareté, ou sa cote si elle vaut très cher */
+function level(card) {
+  const p = priceOf(card), byPrice = p >= 500_00 ? 5 : p >= 100_00 ? 4 : p >= 30_00 ? 3 : 0;
+  return Math.max(RARITY[card.rarity].rank, byPrice);
+}
+function collect(card) {
+  const isNew = !has(card.id);
+  save.owned[card.id] = (save.owned[card.id] || 0) + 1;
+  const pl = (save.pulled[card.set] ||= {});
+  pl[card.rarity] = (pl[card.rarity] || 0) + 1;
+  if (level(card) >= 2) { save.hits.unshift(card.id); save.hits = save.hits.slice(0, 40); }
+  return isNew;
+}
+
+/* ---------- Rendu d'une carte ---------- */
+function hashHue(s) { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
+function cardEl(card, { tilt = true, price = false, lazy = false } = {}) {
+  const R = RARITY[card.rarity];
+  const el = document.createElement("div");
+  el.className = "card" + (R.holo ? "" : " matte");
+  el.style.setProperty("--rc", R.color);
+  el.style.setProperty("--holo", R.holo);
+  el.style.setProperty("--h", hashHue(card.name));
+  el.innerHTML = `
+    <div class="face">
+      <div class="ph">
+        <div class="top"><span class="nm">${card.name}</span></div>
+        <div class="art">${R.sym}</div>
+        <div class="bot"><span>${card.num}</span><span class="sym">${R.sym}</span></div>
+      </div>
+      <img alt="" draggable="false"${lazy ? ' loading="lazy"' : ""}>
+      <div class="shine"></div><div class="glare"></div>
+    </div>`;
+  const img = el.querySelector("img"), face = el.querySelector(".face");
+  img.onload = () => face.classList.add("has-img");
+  img.onerror = () => img.remove();
+  img.src = card.img;
+  if (tilt) attachTilt(el);
+  if (price) el.insertAdjacentHTML("beforeend", priceTag(card));
+  return el;
+}
+function slabEl(card, x, { price = false, lazy = false, tilt = false } = {}) {
+  const el = document.createElement("div"), G = GRADE[x.g], R = RARITY[card.rarity], set = SET[card.set];
+  let h = 7; for (const ch of x.u) h = (h * 31 + ch.charCodeAt(0)) % 1e8;   // numéro de certificat fixe pour chaque carte
+  el.className = "slab g" + x.g;
+  el.innerHTML = `<div class="case"><div class="ridge"></div>
+    <div class="lbl">
+      <div><div class="t">${set.year} Pokémon ${set.name}</div><div class="t nm">${card.name}</div><div class="t">#${card.num.split(/[ /]/)[0]} · ${R.label}</div></div>
+      <div class="gr"><span class="gn">${G[1]}</span><span class="gd">${x.g}</span></div>
+      <div class="foot"><span class="holo">${GRADER}</span><span class="bar"></span><span class="cert">${String(h).padStart(8, "0")}</span></div>
+    </div>
+    <div class="well"></div><div class="gloss"></div></div>`;
+  el.querySelector(".well").appendChild(cardEl(card, { tilt: false, lazy }));
+  if (price) el.insertAdjacentHTML("beforeend", `<div class="price${gradedPrice(x) >= 20_00 ? " big" : ""}">${fmt(gradedPrice(x))}</div>`);
+  if (tilt) attachTilt(el);
+  return el;
+}
+const priceTag = c => `<div class="price${priceOf(c) >= 20_00 ? " big" : ""}">${fmt(priceOf(c))}</div>`;
+function attachTilt(el) {
+  el.addEventListener("pointermove", e => {
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    el.style.setProperty("--mx", (x * 100) + "%");
+    el.style.setProperty("--my", (y * 100) + "%");
+    el.style.setProperty("--rx", ((0.5 - y) * 22) + "deg");
+    el.style.setProperty("--ry", ((x - 0.5) * 26) + "deg");
+    el.classList.add("active");
+  });
+  el.addEventListener("pointerleave", () => {
+    el.classList.remove("active");
+    el.style.removeProperty("--mx"); el.style.removeProperty("--my");
+    el.style.setProperty("--rx", "0deg"); el.style.setProperty("--ry", "0deg");
+  });
+}
+
+/* =====================================================================
+   EFFETS : particules, flash, bannière, toast
+   ===================================================================== */
+const fx = document.getElementById("fx"), ctx = fx.getContext("2d");
+let parts = [], fxRunning = false;
+function sizeFx() { fx.width = innerWidth * devicePixelRatio; fx.height = innerHeight * devicePixelRatio; }
+sizeFx(); addEventListener("resize", sizeFx);
+function burst(x, y, color, n = 60, power = 9) {
+  const colors = Array.isArray(color) ? color : [color, "#ffffff"];
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = (0.3 + Math.random()) * power;
+    parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, d: 0.008 + Math.random() * 0.012,
+      size: 2 + Math.random() * 4, c: rnd(colors), star: Math.random() < .4, rot: Math.random() * 6 });
+  }
+  if (!fxRunning) { fxRunning = true; requestAnimationFrame(tick); }
+}
+function confetti(colors) {
+  for (let i = 0; i < 160; i++) {
+    parts.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * .5, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 4,
+      life: 1, d: 0.004, size: 4 + Math.random() * 5, c: rnd(colors), rect: true, rot: Math.random() * 6 });
+  }
+  if (!fxRunning) { fxRunning = true; requestAnimationFrame(tick); }
+}
+function drawStar(x, y, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5, rr = i % 2 ? r * .45 : r; ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+  ctx.fill();
+}
+function tick() {
+  const d = devicePixelRatio;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, fx.width, fx.height); ctx.setTransform(d, 0, 0, d, 0, 0);
+  parts = parts.filter(p => p.life > 0 && p.y < innerHeight + 50);
+  for (const p of parts) {
+    p.x += p.vx; p.y += p.vy; p.vy += p.rect ? 0.02 : 0.18; p.vx *= .99; p.life -= p.d; p.rot += .1;
+    ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.c;
+    if (p.rect) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); ctx.restore(); }
+    else if (p.star) drawStar(p.x, p.y, p.size * 1.6);
+    else { ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 7); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
+  if (parts.length) requestAnimationFrame(tick); else { fxRunning = false; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+function flash(color) {
+  const f = document.getElementById("flash");
+  f.style.setProperty("--fc", color); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go");
+}
+function banner(text, color, sub = "") {
+  const b = document.getElementById("banner");
+  b.textContent = text;
+  if (sub) { const s = document.createElement("small"); s.textContent = sub; b.appendChild(s); }
+  b.style.setProperty("--bc", color);
+  b.classList.remove("go"); void b.offsetWidth; b.classList.add("go");
+  bannerAt = Date.now();
+}
+let bannerAt = 0;
+/* bannière "de bonus" : attend la fin de celle en cours (un hit passe en premier) */
+function bannerLater(text, color, sub) {
+  const at = Math.max(Date.now(), bannerAt + 2500, laterAt + 2500); laterAt = at;
+  setTimeout(() => { banner(text, color, sub); confetti([color, "#fff", "#4ce08a"]); }, at - Date.now());
+}
+let laterAt = 0;
+let toastT;
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2600);
+}
+function nope(btn, msg) { btn.classList.remove("nope"); void btn.offsetWidth; btn.classList.add("nope"); toast(msg); }
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* =====================================================================
+   OUVERTURE DU BOOSTER
+   ===================================================================== */
+const pack = document.getElementById("pack"), deck = document.getElementById("deck"),
+      summary = document.getElementById("summary"), hint = document.getElementById("hint"),
+      btnFast = document.getElementById("btnFast"), picker = document.getElementById("picker"),
+      controls = document.getElementById("openControls");
+let state = "pack";          // pack -> opening -> deck -> summary
+let current = [], idx = 0, busy = false, newFlags = [];
+const HINT = "Clique sur le booster pour l'ouvrir (ou glisse le long des pointillés pour le déchirer)";
+/* save.sel = une série (boosters achetés) ou "free" (boosters gratuits de la série save.freeSet) */
+const FREE = "free";
+const curSet = () => save.sel === FREE ? save.freeSet : save.sel;
+const left = () => save.sel === FREE ? save.free : save.boosters[save.sel] || 0;
+function take(n) {
+  if (save.sel === FREE) { save.free -= n; if (!save.free) save.freeAt = Date.now() + FREE_EVERY; }
+  else save.boosters[save.sel] -= n;
+  save.packs[curSet()] = (save.packs[curSet()] || 0) + n;
+}
+const packPrice = () => save.sel === FREE ? 0 : boosterOf(save.sel).price;
+const mmss = ms => { const t = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
+
+/* habille le booster avec la vraie photo du booster de la série choisie */
+function dressPack() {
+  const p = PROD[SET[curSet()].booster], img = new Image();
+  img.onload = () => pack.style.setProperty("--ar", img.naturalWidth / img.naturalHeight);
+  img.src = p.img;
+  pack.style.setProperty("--pimg", `url("${p.img}")`);
+}
+
+/* barre de choix des boosters possédés + état du stage */
+function renderPicker() {
+  const owned = SETS.filter(s => save.boosters[s.id] > 0);
+  if (!isUnlocked(save.freeSet)) save.freeSet = "30th";
+  if (!left()) save.sel = save.free ? FREE : owned[0]?.id || FREE;
+  picker.innerHTML = "";
+  // les boosters gratuits, en premier : on choisit la série parmi celles débloquées
+  const fb = document.createElement("div");   // pas un <button> : il contient un menu déroulant
+  fb.className = "pchip free" + (save.sel === FREE ? " on" : "") + (save.free ? "" : " wait");
+  fb.setAttribute("role", "button");
+  if (state !== "pack") fb.setAttribute("disabled", "");
+  fb.innerHTML = save.free
+    ? `<span class="gift">🎁</span><span>Gratuits<br><b>×${save.free}</b></span>
+       <select>${SETS.filter(s => isUnlocked(s.id)).map(s => `<option value="${s.id}"${s.id === save.freeSet ? " selected" : ""}>${s.name}</option>`).join("")}</select>`
+    : `<span class="gift">🎁</span><span>10 gratuits<br>dans <b id="freeTimer">${mmss(save.freeAt - Date.now())}</b></span>`;
+  fb.onclick = e => { if (e.target.tagName === "SELECT" || !save.free) return; save.sel = FREE; persist(); renderPicker(); };
+  const sel = fb.querySelector("select");
+  if (sel) { sel.onclick = e => e.stopPropagation();
+    sel.onchange = () => { save.freeSet = sel.value; save.sel = FREE; persist(); renderPicker(); }; }
+  picker.appendChild(fb);
+  owned.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "pchip" + (s.id === save.sel ? " on" : "");
+    b.disabled = state !== "pack";
+    b.innerHTML = `<img src="${PROD[s.booster].img}" alt=""><span>${s.name}<br><b>×${save.boosters[s.id]}</b></span>`;
+    b.onclick = () => { save.sel = s.id; persist(); renderPicker(); };
+    picker.appendChild(b);
+  });
+  // la prochaine série à débloquer, pour donner envie de continuer
+  const nl = nextLock();
+  picker.insertAdjacentHTML("beforeend", `<div class="nextunlock" style="flex-basis:100%">${nl
+    ? `Prochaine série : <b>${nl.name}</b> dans ${(nl.unlock - opened()).toLocaleString("fr-FR")} boosters`
+    : "Toutes les séries sont débloquées ✓"}</div>`);
+  if (state === "pack") {
+    const has = left() > 0;
+    pack.classList.toggle("gone", !has);
+    summary.hidden = has;
+    if (!has) {
+      summary.innerHTML = `<div class="nopack"><div class="big">Plus de booster !</div>
+        <div>Tes 10 boosters gratuits reviennent dans <b id="freeTimer2">${mmss(save.freeAt - Date.now())}</b>.<br>
+        En attendant, la boutique a des boosters, des displays et des ETB.</div>
+        <button class="btn" id="goShop">Aller à la boutique · ${fmt(save.money)}</button></div>`;
+      summary.querySelector("#goShop").onclick = () => show("shop");
+    }
+    dressPack();
+    hint.textContent = has ? HINT : "";
+    btnFast.disabled = left() < 2;
+    controls.hidden = !has;
+    btnFast.textContent = `⚡ Ouvrir ×${Math.min(10, Math.max(2, left()))} d'un coup · ${fmt(FAST_FEE)}`;
+  }
+}
+
+/* déchirer en glissant le long des pointillés : la déchirure suit le curseur */
+const top_ = pack.querySelector(".pack-top"), prog = pack.querySelector(".tearprog");
+let drag = null, dragged = false;
+const CUT = .13;   // même valeur que --cut en CSS : hauteur de la bande du haut
+function onLine(e) {   // le curseur est-il sur (ou tout près de) la ligne pointillée ?
+  const r = pack.getBoundingClientRect(), y = r.top + r.height * CUT;
+  return Math.abs(e.clientY - y) < Math.max(32, r.height * .1) && e.clientX > r.left - 16 && e.clientX < r.right + 16;
+}
+function tearAt(e) {   // position du curseur le long de la ligne, de 0 à 1
+  const r = pack.getBoundingClientRect();
+  return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+}
+pack.addEventListener("pointerdown", e => {
+  dragged = false;   // remis à zéro à chaque appui : un simple clic n'importe où sur le booster l'ouvre toujours
+  if (state !== "pack" || !onLine(e)) return;
+  const x = tearAt(e);
+  drag = { from: x, dir: x < .5 ? 1 : -1 };   // on déchire depuis le bord le plus proche
+  pack.setPointerCapture(e.pointerId); pack.classList.add("tearing");
+  prog.style.left = drag.dir > 0 ? "3%" : "auto"; prog.style.right = drag.dir > 0 ? "auto" : "3%";
+  dragged = false;
+});
+pack.addEventListener("pointermove", e => {
+  if (!drag) { pack.classList.toggle("near", state === "pack" && onLine(e)); return; }
+  const x = tearAt(e), p = drag.dir > 0 ? x : 1 - x;
+  if (Math.abs(x - drag.from) > .04) dragged = true;
+  prog.style.width = (Math.min(1, p) * 94) + "%";
+  if (p >= .9 && Math.abs(x - drag.from) > .35) { drag = null; pack.classList.remove("tearing", "near"); openPack(); }
+});
+const endTear = () => {
+  pack.classList.remove("near");
+  if (!drag) return;
+  drag = null; pack.classList.remove("tearing");
+  prog.style.transition = "width .3s"; prog.style.width = "0"; setTimeout(() => prog.style.transition = "", 300);
+};
+pack.addEventListener("pointerup", endTear);
+pack.addEventListener("pointerleave", () => { if (!drag) pack.classList.remove("near"); });
+pack.addEventListener("click", () => { if (state === "pack" && !dragged) openPack(); });
+
+async function openPack() {
+  if (state !== "pack" || left() < 1) return;
+  state = "opening"; btnFast.disabled = true; controls.hidden = true; hint.textContent = "";
+  take(1);
+  current = makePack(curSet()); idx = 0; newFlags = [];
+  persist(); updateCounter(); renderPicker();
+
+  pack.classList.add("shake");
+  await wait(450);
+  pack.classList.remove("shake");
+  prog.style.width = "100%";
+  const r = top_.getBoundingClientRect();
+  burst(r.left + r.width / 2, r.bottom, ["#ffd76a", "#ffffff", "#ff4fa0", "#2ff5c8"], 70, 8);
+  pack.classList.add("opening");
+  await wait(500);
+  buildDeck();
+  await wait(700);
+  pack.classList.add("gone");
+  reveal(0);
+  state = "deck";
+}
+
+function buildDeck() {
+  deck.innerHTML = "";
+  current.forEach((card, i) => {
+    const f = document.createElement("div");
+    f.className = "fcard enter";
+    f.style.setProperty("--rc", RARITY[card.rarity].color);
+    f.appendChild(cardEl(card));
+    f.insertAdjacentHTML("beforeend", `<div class="rlabel">${RARITY[card.rarity].label}<br><span class="pr">${fmt(priceOf(card))}</span></div>`);
+    f.style.zIndex = 100 - i;
+    deck.appendChild(f);
+    setTimeout(() => f.classList.remove("enter"), 60 + i * 70);
+  });
+  restack();
+}
+function restack() {
+  [...deck.children].forEach((f, k) => {
+    if (f.classList.contains("out")) return;
+    const j = k - idx;
+    f.style.transform = `translate(${j * 3}px, ${-j * 3}px) rotate(${j === 0 ? 0 : (j % 2 ? 1.5 : -1.5) * Math.min(j, 3)}deg)`;
+  });
+}
+
+/* la carte du dessus devient visible : on l'ajoute à la collection + effets */
+function reveal(i) {
+  const f = deck.children[i], card = current[i], R = RARITY[card.rarity], lv = level(card);
+  const isNew = fast ? newFlags[i] : collect(card);   // ouverture ×10 : déjà rangées dans la collection
+  if (!fast) { persist(); updateCounter(); newFlags[i] = isNew; }
+  if (isNew) { const t = document.createElement("div"); t.className = "tag"; t.textContent = "NEW"; f.appendChild(t); }
+  f.classList.add("shown", "pop");
+  if (lv >= 2) f.classList.add("hit");
+  const r = f.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  if (lv >= 2) {
+    burst(cx, cy, [R.color, "#ffffff", R.color], 40 + lv * 30, 6 + lv * 2);
+    banner(R.label + " !", R.color, priceOf(card) >= 10_00 ? card.name + " · " + fmt(priceOf(card)) : "");
+  } else if (lv === 1) burst(cx, cy, [R.color, "#ffffff"], 25, 5);
+  if (lv >= 4) { flash(R.color); confetti([R.color, "#ffffff", "#ffd76a", "#4ce08a"]); }
+  hint.textContent = i < current.length - 1 ? `Clique pour la carte suivante (${i + 1}/${current.length})` : "Clique pour voir ton booster";
+}
+
+deck.addEventListener("click", advance);
+addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+  if (document.getElementById("view-open").hidden || !document.getElementById("modal").hidden) return;
+  if (e.code === "Space" || e.key === "Enter") {
+    e.preventDefault();
+    if (state === "pack") openPack(); else if (state === "deck") advance(); else if (state === "summary") resetStage();
+  }
+});
+
+async function advance() {
+  if (state !== "deck" || busy) return;
+  busy = true;
+  const top = deck.children[idx];
+  if (idx >= current.length - 1) {
+    top.classList.add("out");
+    await wait(350);
+    if (fast) fastSummary(); else showSummary();
+    busy = false; return;
+  }
+  // suspense : la carte suivante est un hit -> elle "brille" derrière la carte du dessus
+  const nextCard = current[idx + 1], lv = level(nextCard);
+  if (lv >= 2) {
+    deck.style.setProperty("--rc", RARITY[nextCard.rarity].color);
+    deck.classList.add("suspense"); if (lv >= 4) deck.classList.add("big");
+    hint.textContent = "…";
+    await wait(lv >= 4 ? 1600 : lv >= 3 ? 1100 : 750);
+    deck.classList.remove("suspense", "big");
+  }
+  top.classList.add("out");
+  idx++;
+  restack();
+  await wait(120);
+  reveal(idx);
+  await wait(250);
+  busy = false;
+}
+
+/* récap : valeur du (des) booster(s) comparée au prix payé */
+function showSummary(cards = current, flags = newFlags, title = "Ton booster", nbPacks = 1) {
+  state = "summary"; deck.innerHTML = ""; controls.hidden = true;
+  summary.hidden = false;
+  const value = cards.reduce((a, c) => a + priceOf(c), 0);
+  const paid = packPrice() * nbPacks;
+  const diff = value - paid;
+  summary.innerHTML = `<div class="sumtitle">${title}</div>
+    <div class="sumval">Valeur des cartes : <b>${fmt(value)}</b> · prix ${nbPacks > 1 ? "des boosters" : "du booster"} : <b>${paid ? fmt(paid) : "gratuit"}</b>
+      → <span class="${diff >= 0 ? "up" : "down"}">${diff >= 0 ? "+" : "−"}${fmt(Math.abs(diff))}</span></div>
+    <div class="sumrow"></div>
+    <div class="controls">
+      <button class="btn" id="again">${left() ? `Ouvrir un autre booster (${left()})` : save.free || Object.values(save.boosters).some(n => n > 0) ? "Choisir un autre booster" : "Acheter des boosters"}</button>
+      <button class="btn green" id="sellAll">Tout revendre · +${fmt(cards.reduce((a, c) => a + sellPrice(priceOf(c)), 0))}</button>
+      <button class="btn ghost" id="toBinder">Voir le classeur</button>
+    </div>`;
+  const row = summary.querySelector(".sumrow");
+  cards.forEach((c, i) => {
+    const s = document.createElement("div"); s.className = "slot"; s.style.animationDelay = (i * 0.05) + "s";
+    const el = cardEl(c, { price: true }); if (level(c) >= 2) el.style.boxShadow = `0 0 24px ${RARITY[c.rarity].color}`;
+    s.appendChild(el);
+    if (flags[i]) { const t = document.createElement("div"); t.className = "tag"; t.textContent = "NEW"; s.appendChild(t); }
+    s.onclick = () => openModal(c);
+    row.appendChild(s);
+  });
+  summary.querySelector("#again").onclick = () => left() || save.free || Object.values(save.boosters).some(n => n > 0) ? resetStage() : show("shop");
+  const sellBtn = summary.querySelector("#sellAll");
+  sellBtn.onclick = () => {
+    let total = 0;
+    for (const c of cards) if (save.owned[c.id] > 0) { total += sellPrice(priceOf(c)); removeCard(c.id); }
+    gain(total); persist(); updateCounter(true);
+    sellBtn.disabled = true; sellBtn.textContent = "Vendu ✓";
+    toast(`Cartes revendues : +${fmt(total)}`);
+  };
+  summary.querySelector("#toBinder").onclick = () => { binderSet = curSet(); show("binder"); };
+  hint.textContent = "";
+}
+
+function resetStage() {
+  fast = null;
+  summary.hidden = true; summary.innerHTML = ""; deck.innerHTML = "";
+  pack.className = "pack"; prog.style.width = "0";
+  state = "pack";
+  renderPicker();
+}
+
+/* ouverture rapide : jusqu'à 10 boosters d'un coup, on n'affiche que les meilleures cartes */
+/* ouverture ×10 : tous les boosters sont ouverts d'un coup, puis on fait défiler UNIQUEMENT les hits
+   (du moins cher au plus cher : le meilleur arrive en dernier), et le récap compte toutes les cartes */
+let fast = null;   // { all, n, price, hits, flags } pendant une ouverture ×10
+btnFast.onclick = async () => {
+  if (state !== "pack" || left() < 2) return;
+  if (!pay(FAST_FEE)) return nope(btnFast, `L'ouverture rapide coûte ${fmt(FAST_FEE)} : ouvre tes boosters à la main !`);
+  const n = Math.min(10, left()), got = [], flags = [], all = [];
+  const setId = curSet(), price = packPrice();
+  take(n);
+  for (let p = 0; p < n; p++) {
+    for (const c of makePack(setId)) {
+      const isNew = collect(c); all.push(c);
+      if (level(c) >= 2 || priceOf(c) >= 5_00) { got.push(c); flags.push(isNew); }
+    }
+  }
+  persist(); updateCounter();
+  const order = got.map((c, i) => [c, flags[i]]).sort((a, b) => priceOf(a[0]) - priceOf(b[0]));
+  fast = { all, n, price, hits: order.map(o => o[0]), flags: order.map(o => o[1]) };
+  state = "opening"; renderPicker(); btnFast.disabled = true; controls.hidden = true; hint.textContent = "";
+  // même ouverture qu'un booster normal
+  pack.classList.add("shake");
+  await wait(450);
+  pack.classList.remove("shake");
+  prog.style.width = "100%";
+  const r = top_.getBoundingClientRect();
+  burst(r.left + r.width / 2, r.bottom, ["#ffd76a", "#ffffff", "#ff4fa0", "#2ff5c8"], 90, 9);
+  pack.classList.add("opening");
+  await wait(500);
+  if (!fast.hits.length) { pack.classList.add("gone"); return fastSummary(); }
+  current = fast.hits; newFlags = fast.flags; idx = 0;
+  banner(`${fast.hits.length} hit${fast.hits.length > 1 ? "s" : ""} !`, "#f0c674", `dans tes ${n} boosters`);
+  buildDeck();
+  await wait(700);
+  pack.classList.add("gone");
+  reveal(0);
+  state = "deck";
+};
+/* récap de l'ouverture ×10 : les hits (du plus cher au moins cher) + la valeur de TOUTES les cartes */
+function fastSummary() {
+  const { all, n, price } = fast, hits = [...fast.hits].reverse(), flags = [...fast.flags].reverse(), rest = all.length - hits.length;
+  showSummary(hits, flags, hits.length ? `${n} boosters · ${hits.length} hit${hits.length > 1 ? "s" : ""}` : `${n} boosters… aucun hit 😭`, n);
+  const value = all.reduce((a, c) => a + priceOf(c), 0), paid = price * n + FAST_FEE, diff = value - paid;
+  summary.querySelector(".sumval").innerHTML = `Valeur des ${all.length} cartes : <b>${fmt(value)}</b> · ${price ? "prix des boosters + frais ×10" : "frais ×10 (boosters gratuits)"} : <b>${fmt(paid)}</b>
+    → <span class="${diff >= 0 ? "up" : "down"}">${diff >= 0 ? "+" : "−"}${fmt(Math.abs(diff))}</span>
+    <br><span style="font-size:13px">(+ ${rest} cartes à moins de 5 $, rangées dans le classeur)</span>`;
+  const sellBtn = summary.querySelector("#sellAll");
+  sellBtn.textContent = `Tout revendre · +${fmt(all.reduce((a, c) => a + sellPrice(priceOf(c)), 0))}`;
+  sellBtn.onclick = () => {
+    let total = 0;
+    for (const c of all) if (save.owned[c.id] > 0) { total += sellPrice(priceOf(c)); removeCard(c.id); }
+    gain(total); persist(); updateCounter(true);
+    sellBtn.disabled = true; sellBtn.textContent = "Vendu ✓";
+    toast(`${all.length} cartes revendues : +${fmt(total)}`);
+  };
+}
+
+/* =====================================================================
+   BOUTIQUE : acheter, ouvrir les coffrets, revendre le scellé
+   ===================================================================== */
+let shopSet = "30th";
+function renderShop() {
+  const box = document.getElementById("view-shop"), s = SET[shopSet];
+  box.innerHTML = `<div class="shop">
+    <div class="setchips">${SETS.map(x => `<button class="chip${x.id === shopSet ? " on" : ""}" data-s="${x.id}">${isUnlocked(x.id) ? "" : "🔒 "}${x.name}<small>${x.year}</small></button>`).join("")}</div>
+    <div class="sethero" style="--sc:${s.color}">
+      <div><h2>${s.name}</h2><p>${s.desc}</p></div>
+      ${isUnlocked(s.id) ? "" : `<div class="lockbox">🔒 Se débloque à <b>${s.unlock.toLocaleString("fr-FR")} boosters ouverts</b> · encore ${(s.unlock - opened()).toLocaleString("fr-FR")}
+        <div class="bar"><i style="width:${opened() / s.unlock * 100}%"></i></div></div>`}
+    </div>
+    <div class="products"></div>
+    <h3>Les cartes de la série</h3>
+    <div id="catalog"></div>
+    <h3>Mon stock scellé</h3>
+    <div class="inv" id="inv"></div>
+    <details class="info"><summary>Sources des prix et règles du jeu</summary><div class="note">
+      Prix des produits : cote TCGplayer (prix du marché, version anglaise), relevée le ${new Date(PRICE_DATE).toLocaleDateString("fr-FR")}.
+      Displays Set de Base et Fossile : ventes aux enchères 2026. Display et ETB Explosion Plasma : ventes eBay 2026. Exception : les produits 30e Anniversaire coûtent 36 % de plus que leur cote,
+      sinon leurs boosters rapporteraient plus qu'ils ne coûtent (les cartes de cette série toute récente sont surcotées).
+      Ouverture rapide ×10 : ${fmt(FAST_FEE)} de frais. Cadeau de ${fmt(DAILY_GIFT)} chaque jour, ${FREE_COUNT} boosters gratuits et ${fmt(FREE_CASH)} toutes les 30 minutes (quand les boosters précédents sont ouverts),
+      et des récompenses en complétant tes séries (25, 50 et 100 %). Les séries se débloquent en ouvrant des boosters :
+      ${SETS.filter(x => x.unlock).map(x => `${x.name} à ${x.unlock.toLocaleString("fr-FR")}`).join(", ")}.
+      Grading ${GRADER} : ${fmt(GRADE_COST)} par carte, note de 5 à 10 (10 = cote ×3, 9 = ×1,5, 8 et 7 = inchangée, 6 = ×0,8, 5 = ×0,65). Cotes des cartes : API TCGdex (TCGplayer, ou Cardmarket converti en dollars),
+      actualisables depuis le classeur. Revente à 100 % de la cote, sans frais ; un booster en vrac se revend au prix par booster le plus bas de la série.
+      Taux de drop : taux réels relevés par la communauté (TCGplayer et autres), voir l'onglet Stats.
+    </div></details></div>`;
+  box.querySelectorAll(".setchips .chip").forEach(b => b.onclick = () => { shopSet = b.dataset.s; renderShop(); });
+
+  const grid = box.querySelector(".products");
+  for (const p of PRODUCTS.filter(p => p.set === shopSet)) {
+    const d = document.createElement("div"); d.className = "prod";
+    const have = p.kind === "booster" ? save.boosters[p.set] || 0 : save.sealed[p.id] || 0;
+    const per = p.packs > 1 ? `<small>soit ${fmt(Math.round(p.price / p.packs))} le booster</small>` : `<small>${p.sub}</small>`;
+    d.innerHTML = `<div class="pimg"><img src="${p.img}" alt=""></div>
+      <div><div class="pname">${p.name}</div><div class="psub">${p.packs > 1 ? p.sub : SET[p.set].name}</div></div>
+      <div class="pprice">${fmt(p.price)}${per}</div>
+      <div class="owned">${have ? "En stock : " + have : ""}</div>
+      <div class="row"></div>`;
+    const row = d.querySelector(".row");
+    const qty = p.kind === "booster" ? [1, 10] : [1];
+    if (!isUnlocked(p.set)) qty.length = 1;
+    qty.forEach(q => {
+      const b = document.createElement("button"); b.className = "btn small" + (q > 1 ? " ghost" : "");
+      b.textContent = q > 1 ? `×${q}` : "Acheter";
+      if (!isUnlocked(p.set)) { b.textContent = "🔒 Verrouillé"; b.className = "btn small ghost"; b.disabled = true; }
+      b.onclick = () => {
+        if (!pay(p.price * q)) return nope(b, `Pas assez d'argent : il te faut ${fmt(p.price * q)}`);
+        if (p.kind === "booster") save.boosters[p.set] = (save.boosters[p.set] || 0) + q;
+        else save.sealed[p.id] = (save.sealed[p.id] || 0) + q;
+        persist(); updateCounter(true); renderShop();
+        toast(`${q > 1 ? q + " × " : ""}${p.name} ${SET[p.set].name} acheté${q > 1 ? "s" : ""} (−${fmt(p.price * q)})`);
+      };
+      row.appendChild(b);
+    });
+    grid.appendChild(d);
+  }
+  renderCatalog();
+  renderInventory();
+}
+
+/* catalogue : toutes les cartes de la série, leur cote et leurs chances, avant d'acheter */
+let catSort = "price", catAll = false;
+function renderCatalog() {
+  const box = document.getElementById("catalog"), cards = CARDS.filter(c => c.set === shopSet), pp = PER_PACK[shopSet];
+  const rar = [...new Set(cards.map(c => c.rarity))].sort((a, b) => RARITY[b].rank - RARITY[a].rank || pp[a] - pp[b]);
+  const ev = rar.reduce((a, r) => a + pp[r] * POOL[shopSet][r].reduce((x, c) => x + priceOf(c), 0) / POOL[shopSet][r].length, 0);
+  box.innerHTML = `<details class="info" style="margin:0 0 14px"><summary>Taux de drop par rareté</summary><table class="rtable">
+      <tr><th>Rareté</th><th>Cartes</th><th>Chance par booster</th><th>Cote moyenne</th><th>La plus chère</th></tr>
+      ${rar.map(r => {
+        const list = POOL[shopSet][r], R = RARITY[r], top = list.reduce((a, c) => priceOf(c) > priceOf(a) ? c : a);
+        return `<tr style="--rc:${R.color}"><td><span class="dot"></span>${R.label}</td><td>${list.length}</td><td>${oddsText(pp[r])}</td>
+          <td>${fmt(Math.round(list.reduce((a, c) => a + priceOf(c), 0) / list.length))}</td><td>${top.name} · ${fmt(priceOf(top))}</td></tr>`;
+      }).join("")}
+    </table></details>
+    <div class="catbar">
+      <div class="grow sumval">Valeur moyenne d'un booster : <b>${fmt(Math.round(ev))}</b> pour un prix de <b>${fmt(boosterOf(shopSet).price)}</b>
+        (${Math.round(ev / boosterOf(shopSet).price * 100)} %)</div>
+      <button class="chip${catSort === "price" ? " on" : ""}" data-k="price">Plus chères</button>
+      <button class="chip${catSort === "num" ? " on" : ""}" data-k="num">Par numéro</button>
+    </div>
+    <div class="grid"></div>
+    <div class="controls"><button class="btn ghost small" id="catMore"></button></div>`;
+  box.querySelectorAll(".catbar .chip").forEach(b => b.onclick = () => { catSort = b.dataset.k; renderCatalog(); });
+  const list = [...cards].sort(catSort === "price" ? (a, b) => priceOf(b) - priceOf(a) : (a, b) => a.order - b.order);
+  const grid = box.querySelector(".grid");
+  for (const c of catAll ? list : list.slice(0, 12)) {
+    const s = document.createElement("div"); s.className = "slot";
+    s.appendChild(cardEl(c, { price: true, lazy: true }));
+    if (has(c.id)) s.insertAdjacentHTML("beforeend", `<div class="mine">✓</div>`);
+    s.insertAdjacentHTML("beforeend", `<div class="odds">${oddsText(PER_PACK[c.set][c.rarity] / POOL[c.set][c.rarity].length)}</div>`);
+    s.onclick = () => openModal(c);
+    grid.appendChild(s);
+  }
+  const more = box.querySelector("#catMore");
+  more.textContent = catAll ? "Réduire" : `👀 Voir les ${cards.length} cartes`;
+  more.onclick = () => { catAll = !catAll; renderCatalog(); };
+}
+
+function renderInventory() {
+  const inv = document.getElementById("inv"); inv.innerHTML = "";
+  const rows = [];
+  for (const s of SETS) if (save.boosters[s.id] > 0) rows.push({ p: { ...boosterOf(s.id), price: looseValue(s.id) }, n: save.boosters[s.id], booster: true });
+  for (const p of PRODUCTS) if (save.sealed[p.id] > 0) rows.push({ p, n: save.sealed[p.id] });
+  if (!rows.length) { inv.innerHTML = `<div class="empty">Rien en stock. Achète un produit ci-dessus !</div>`; return; }
+  for (const { p, n, booster } of rows) {
+    const r = document.createElement("div"); r.className = "invrow";
+    r.innerHTML = `<img src="${p.img}" alt=""><div class="grow"><div class="t">${n} × ${p.name} — ${SET[p.set].name}</div>
+      <div class="s">Cote ${fmt(p.price)} pièce</div></div>`;
+    const open = document.createElement("button"); open.className = "btn small";
+    open.textContent = booster ? "Ouvrir" : `Ouvrir (+${p.packs} boosters)`;
+    open.onclick = () => {
+      if (booster) { save.sel = p.set; persist(); return show("open"); }
+      save.sealed[p.id]--; save.boosters[p.set] = (save.boosters[p.set] || 0) + p.packs; save.sel = p.set;
+      persist(); updateCounter(); renderShop();
+      banner(`+${p.packs} boosters !`, SET[p.set].color, SET[p.set].name);
+      burst(innerWidth / 2, innerHeight / 2, [SET[p.set].color, "#fff", "#ffd76a"], 90, 10);
+    };
+    const sell = document.createElement("button"); sell.className = "btn small green";
+    sell.textContent = `Revendre 1 · +${fmt(sellPrice(p.price))}`;
+    sell.onclick = () => {
+      if (booster) save.boosters[p.set]--; else save.sealed[p.id]--;
+      gain(sellPrice(p.price)); persist(); updateCounter(true); renderShop();
+      toast(`${p.name} revendu : +${fmt(sellPrice(p.price))}`);
+    };
+    r.append(open, sell);
+    inv.appendChild(r);
+  }
+}
+
+/* =====================================================================
+   CLASSEUR
+   ===================================================================== */
+let filter = "all", binderSet = "30th";
+let selling = false, picked = {};   // mode vente : picked[id] = nombre d'exemplaires à vendre
+const FILTERS = [["all", "Toutes"], ["owned", "Possédées"], ["missing", "Manquantes"], ["hits", "Hits"], ["graded", "Gradées"], ["value", "Par cote"]];
+function removeCard(id, n = 1) {
+  save.owned[id] -= n;
+  if (save.owned[id] <= 0) delete save.owned[id];
+}
+function renderBinder() {
+  const sbox = document.getElementById("binderSets");
+  sbox.innerHTML = SETS.map(s => {
+    const have = CARDS.filter(c => c.set === s.id && has(c.id)).length;
+    return `<button class="chip${s.id === binderSet ? " on" : ""}" data-s="${s.id}">${s.name}<small>${have}/${POOL_SIZE[s.id]}</small></button>`;
+  }).join("");
+  sbox.querySelectorAll(".chip").forEach(b => b.onclick = () => { binderSet = b.dataset.s; picked = {}; renderBinder(); });
+
+  const fbox = document.getElementById("filters");
+  fbox.innerHTML = "";
+  FILTERS.forEach(([k, l]) => {
+    const b = document.createElement("button"); b.className = "chip" + (filter === k ? " on" : ""); b.textContent = l;
+    b.onclick = () => { filter = k; renderBinder(); }; fbox.appendChild(b);
+  });
+
+  const cards = CARDS.filter(c => c.set === binderSet);
+  const have = cards.filter(c => has(c.id)).length;
+  const value = cards.reduce((a, c) => a + priceOf(c) * (save.owned[c.id] || 0), 0) +
+    save.graded.filter(x => BY_ID[x.id]?.set === binderSet).reduce((a, x) => a + gradedPrice(x), 0);
+  const prog = document.getElementById("prog");
+  prog.innerHTML = `<div>${SET[binderSet].name} <b>${have}/${cards.length}</b><div class="bar"><i style="width:${have / cards.length * 100}%"></i></div></div>
+    <div>Valeur <b style="color:var(--green)">${fmt(value)}</b></div>
+`;
+  if (binderSet === "30th") {   // suivi des 30 Pikachu
+    const pikas = POOL["30th"].PR, missing = pikas.filter(c => !has(c.id)).map(c => String(c.order - 22).padStart(2, "0"));
+    prog.insertAdjacentHTML("beforeend", `<div>Pikachu <b>${30 - missing.length}/30</b><div class="bar"><i style="width:${(30 - missing.length) / 30 * 100}%"></i></div>
+      <div class="reward">${save.rewards.pika ? "Récompense reçue ✓" : "Les 30 : +" + fmt(PIKA_REWARD)}</div></div>`);
+  }
+  const nr = nextReward(binderSet);
+  prog.insertAdjacentHTML("beforeend", `<div class="reward">${nr ? `Prochaine récompense : ${nr[0]} % de la série → +${fmt(nr[1])}` : "Série complète, toutes les récompenses reçues ✓"}</div>`);
+
+  // actions : vendre les doublons, actualiser la cote
+  const act = document.getElementById("bactions"); act.innerHTML = "";
+  const dupes = cards.filter(c => save.owned[c.id] > 1);
+  const dupVal = dupes.reduce((a, c) => a + sellPrice(priceOf(c)) * (save.owned[c.id] - 1), 0);
+  const sd = document.createElement("button"); sd.className = "btn small ghost";
+  sd.textContent = `Vendre les doublons · +${fmt(dupVal)}`; sd.disabled = !dupes.length;
+  sd.onclick = () => {
+    const n = dupes.reduce((a, c) => a + save.owned[c.id] - 1, 0);
+    dupes.forEach(c => save.owned[c.id] = 1);
+    gain(dupVal); persist(); updateCounter(true); renderBinder();
+    toast(`${n} doublons revendus : +${fmt(dupVal)}`);
+  };
+  const rf = document.createElement("button"); rf.className = "btn small ghost";
+  rf.textContent = "↻ Actualiser la cote";
+  rf.title = "Cote actuelle du " + new Date(save.priceDate[binderSet] || PRICE_DATE).toLocaleDateString("fr-FR") + " · récupère les prix du marché en direct";
+  rf.onclick = () => refreshPrices(binderSet, rf);
+  const sm = document.createElement("button"); sm.className = "btn small" + (selling ? "" : " ghost");
+  sm.textContent = selling ? "✕ Quitter le mode vente" : "☑ Choisir les cartes à vendre";
+  sm.onclick = () => { selling = !selling; picked = {}; renderBinder(); };
+  act.append(sm, sd, rf);
+  document.getElementById("view-binder").classList.toggle("selling", selling);
+
+  const box = document.getElementById("binder"); box.innerHTML = "";
+  document.querySelector(".sellbar")?.remove();
+  let list = cards.filter(c => {
+    const own = has(c.id);
+    if (filter === "graded") return gradedOf(c.id).length > 0;
+    if (filter === "owned" || filter === "value") return own;
+    if (filter === "missing") return !own;
+    if (filter === "hits") return RARITY[c.rarity].rank >= 2;
+    return true;
+  });
+  list = filter === "value" ? list.sort((a, b) => priceOf(b) - priceOf(a)) : list.sort((a, b) => a.order - b.order);
+  if (selling) sellBar(list.filter(c => save.owned[c.id] > 0));
+  if (!list.length) { box.innerHTML = `<div class="empty">Rien ici pour l'instant.</div>`; return; }
+  const sec = document.createElement("div"); sec.className = "bsec";
+  sec.innerHTML = `<div class="grid"></div>`;
+  const grid = sec.querySelector(".grid");
+  for (const c of list) {
+    const s = document.createElement("div");
+    if (has(c.id)) {
+      s.className = "slot";
+      const raw = save.owned[c.id] || 0, gr = gradedOf(c.id);
+      // une carte gradée s'affiche dans son boîtier (la meilleure note si plusieurs)
+      s.appendChild(gr.length ? slabEl(c, gr[0], { price: true, lazy: true, tilt: true }) : cardEl(c, { price: true, lazy: true }));
+      if (raw + gr.length > 1) s.insertAdjacentHTML("beforeend", `<div class="count">×${raw + gr.length}</div>`);
+      if (picked[c.id]) { s.classList.add("picked"); s.insertAdjacentHTML("beforeend", `<div class="pick">Vendre ×${picked[c.id]}</div>`); }
+      // en mode vente, chaque clic ajoute un exemplaire, puis revient à zéro
+      s.onclick = () => {
+        if (!selling) return openModal(c);
+        if (!raw) return toast("Les cartes gradées se vendent depuis leur fiche (clic hors mode vente)");
+        picked[c.id] = ((picked[c.id] || 0) + 1) % (raw + 1); renderBinder();
+      };
+    } else {
+      s.className = "slot missing";
+      s.innerHTML = `<div class="n">${c.num.split(" ")[0]}</div><div>${c.name}</div><div style="color:${RARITY[c.rarity].color}88">${RARITY[c.rarity].sym} · ${fmt(priceOf(c))}</div>`;
+    }
+    grid.appendChild(s);
+  }
+  box.appendChild(sec);
+}
+/* barre du mode vente : raccourcis de sélection sur les cartes affichées + total */
+function sellBar(shown) {
+  for (const id in picked) if (!picked[id]) delete picked[id];
+  const n = Object.values(picked).reduce((a, b) => a + b, 0);
+  const total = Object.entries(picked).reduce((a, [id, k]) => a + sellPrice(priceOf(BY_ID[id])) * k, 0);
+  const bar = document.createElement("div"); bar.className = "sellbar";
+  bar.innerHTML = `<div class="sum">${n ? `${n} carte${n > 1 ? "s" : ""} · <b>+${fmt(total)}</b>` : "Clique sur les cartes à vendre"}</div>`;
+  const pickAll = (fn, label) => {
+    const b = document.createElement("button"); b.className = "btn small ghost"; b.textContent = label;
+    b.onclick = () => { shown.forEach(c => { const k = fn(c); if (k > 0) picked[c.id] = k; }); renderBinder(); };
+    bar.appendChild(b);
+  };
+  pickAll(c => save.owned[c.id] - 1, "Doublons");
+  pickAll(c => priceOf(c) < 1_00 ? save.owned[c.id] : 0, "Moins de 1 $");
+  pickAll(c => save.owned[c.id], "Tout");
+  const clr = document.createElement("button"); clr.className = "btn small ghost"; clr.textContent = "Vider";
+  clr.disabled = !n; clr.onclick = () => { picked = {}; renderBinder(); };
+  const go = document.createElement("button"); go.className = "btn small green"; go.textContent = "Vendre";
+  go.disabled = !n;
+  go.onclick = () => {
+    for (const [id, k] of Object.entries(picked)) removeCard(id, Math.min(k, save.owned[id] || 0));
+    gain(total); picked = {}; persist(); updateCounter(true); renderBinder();
+    toast(`${n} carte${n > 1 ? "s" : ""} vendue${n > 1 ? "s" : ""} : +${fmt(total)}`);
+  };
+  bar.append(clr, go);
+  document.body.appendChild(bar);
+}
+const POOL_SIZE = Object.fromEntries(SETS.map(s => [s.id, CARDS.filter(c => c.set === s.id).length]));
+
+/* ---------- Cote en direct : API TCGdex (TCGplayer en $, sinon Cardmarket en € converti) ---------- */
+const EUR_USD = 1.17;
+function usdFrom(pricing) {
+  const tp = pricing?.tcgplayer || {};
+  for (const k of ["holofoil", "normal", "unlimitedHolofoil", "unlimited", "1stEditionHolofoil", "1stEdition", "reverse-holofoil"])
+    if (tp[k]?.marketPrice) return Math.round(tp[k].marketPrice * 100);
+  const cm = pricing?.cardmarket || {}, eur = cm.avg30 || cm.trend || cm.avg;
+  return eur ? Math.max(2, Math.round(eur * EUR_USD * 100)) : null;
+}
+let refreshing = false;
+async function refreshPrices(setId, btn) {
+  if (refreshing) return;
+  refreshing = true;
+  const list = CARDS.filter(c => c.set === setId && c.tcg), queue = [...list];
+  let done = 0, changed = 0, ok = 0;
+  btn.disabled = true;
+  await Promise.all(Array.from({ length: 8 }, async () => {
+    while (queue.length) {
+      const c = queue.shift();
+      try {
+        const r = await fetch(`https://api.tcgdex.net/v2/en/cards/${c.tcg}`);
+        const p = usdFrom((await r.json()).pricing);
+        if (p) { ok++; if (p !== priceOf(c)) changed++; save.prices[c.id] = p; }
+      } catch (e) {}
+      btn.textContent = `Actualisation… ${++done}/${list.length}`;
+    }
+  }));
+  refreshing = false;
+  if (ok) { save.priceDate[setId] = new Date().toISOString().slice(0, 10); persist(); }
+  updateCounter();
+  if (!document.getElementById("view-binder").hidden) renderBinder();
+  toast(ok ? `Cote à jour : ${changed} prix ont bougé` : "Impossible de joindre le marché (pas d'internet ?)");
+}
+
+/* ---------- Zoom carte : vente, grading ---------- */
+function openModal(c, show = null) {
+  const m = document.getElementById("modal"), R = RARITY[c.rarity], n = save.owned[c.id] || 0, gr = gradedOf(c.id);
+  const odds = cardOdds(c);
+  m.innerHTML = `<div class="mwrap"><div class="mcard"></div>
+    <div class="minfo" style="--rc:${R.color}">${c.name} · ${c.num} · ${SET[c.set].name}<br>
+      <span class="r">${R.sym} ${R.label}</span>${n ? ` · ×${n}` : ""}${gr.length ? ` · ${gr.length} gradée${gr.length > 1 ? "s" : ""}` : ""}<br>
+      <span class="cote">${fmt(priceOf(c))}</span><br>
+      <span style="color:var(--muted);font-size:13px">${odds}</span></div>
+    <div class="controls" style="margin:0"></div><div class="graded-list"></div></div>`;
+  const shown = show || (!n && gr[0]);
+  const mc = m.querySelector(".mcard");
+  mc.classList.toggle("slabbed", !!shown);
+  mc.appendChild(shown ? slabEl(c, shown, { tilt: true }) : cardEl(c));
+  const ctr = m.querySelector(".controls"), refresh = () => { updateCounter(true); if (!document.getElementById("view-binder").hidden) renderBinder(); };
+  if (n) {
+    const b = document.createElement("button"); b.className = "btn green";
+    b.textContent = `Vendre 1 · +${fmt(sellPrice(priceOf(c)))}`;
+    b.onclick = () => {
+      removeCard(c.id); gain(sellPrice(priceOf(c))); persist(); refresh();
+      toast(`${c.name} vendue : +${fmt(sellPrice(priceOf(c)))}`);
+      closeModal();
+    };
+    const g = document.createElement("button"); g.className = "btn";
+    g.textContent = `Grader 1 · ${fmt(GRADE_COST)}`;
+    g.onclick = () => gradeCard(c, g);
+    ctr.append(g, b);
+  }
+  // les exemplaires gradés : un bouton chacun pour le voir et le vendre
+  const gl = m.querySelector(".graded-list");
+  gr.forEach(x => {
+    const v = document.createElement("button"); v.className = "btn small ghost";
+    v.textContent = `${GRADER} ${x.g}`; v.onclick = () => openModal(c, x);
+    const sb = document.createElement("button"); sb.className = "btn small green";
+    sb.textContent = `Vendre la ${x.g} · +${fmt(sellPrice(gradedPrice(x)))}`;
+    sb.onclick = () => {
+      save.graded = save.graded.filter(y => y.u !== x.u); gain(sellPrice(gradedPrice(x))); persist(); refresh();
+      toast(`${c.name} ${GRADER} ${x.g} vendue : +${fmt(sellPrice(gradedPrice(x)))}`);
+      closeModal();
+    };
+    gl.append(v, sb);
+  });
+  m.hidden = false;
+  m.onclick = e => { if (!e.target.closest(".mcard") && !e.target.closest(".btn")) closeModal(); };
+}
+function rollGrade() {
+  let x = Math.random();
+  for (const g of GRADES) { if (x < g[2]) return g[0]; x -= g[2]; }
+  return 8;
+}
+let grading = false;
+async function gradeCard(c, btn) {
+  if (grading) return;
+  if (!(save.owned[c.id] > 0)) return;
+  if (!pay(GRADE_COST)) return nope(btn, `Le grading coûte ${fmt(GRADE_COST)}`);
+  grading = true;
+  const x = { u: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id: c.id, g: rollGrade() };
+  removeCard(c.id); save.graded.push(x); persist(); updateCounter(true);
+  // suspense : la note défile avant d'être révélée
+  const m = document.getElementById("modal"), box = m.querySelector(".mcard");
+  m.querySelectorAll(".controls, .graded-list").forEach(b => b.style.visibility = "hidden");
+  box.innerHTML = ""; box.classList.add("slabbed");
+  const el = slabEl(c, x); el.classList.add("reveal"); box.appendChild(el);
+  m.querySelector(".minfo").innerHTML = `${c.name} · mise sous boîtier…`;
+  await wait(2900);
+  grading = false;
+  openModal(c, x);
+  // le classeur derrière la fiche se met à jour tout seul (boîtier, compteur, valeur)
+  if (!document.getElementById("view-binder").hidden) renderBinder();
+  const G = GRADE[x.g], r = m.querySelector(".mcard").getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const diff = gradedPrice(x) - priceOf(c), sub = `${c.name} · ${fmt(gradedPrice(x))} (${diff >= 0 ? "+" : "−"}${fmt(Math.abs(diff))})`;
+  if (x.g === 10) { flash("#ffd76a"); confetti(["#ffd76a", "#fff", "#c8102e"]); banner(`${GRADER} 10 · GEM MINT !`, "#ffd76a", sub); }
+  else if (x.g === 9) { burst(cx, cy, ["#4ce08a", "#fff"], 90, 10); banner(`${GRADER} 9 · MINT`, "#4ce08a", sub); }
+  else if (x.g <= 6) { banner(`${GRADER} ${x.g} · ${G[1]}`, "#ff6b6b", sub); }
+  else toast(`${GRADER} ${x.g} · ${G[1]} : la cote ne bouge pas`);
+}
+function closeModal() { document.getElementById("modal").hidden = true; }
+
+/* =====================================================================
+   STATS
+   ===================================================================== */
+let resetArmed = false, statsSet = "30th";
+function renderStats() {
+  const coll = ownedValue(), sealed = sealedValue();
+  const net = save.money + coll + sealed - START_MONEY;
+  const totalPacks = Object.values(save.packs).reduce((a, b) => a + b, 0);
+  const set = SET[statsSet], packs = save.packs[statsSet] || 0, pulled = save.pulled[statsSet] || {};
+  const rar = [...new Set(CARDS.filter(c => c.set === statsSet).map(c => c.rarity))].sort((a, b) => RARITY[a].rank - RARITY[b].rank);
+  const box = document.getElementById("stats");
+  box.innerHTML = `
+    <div class="tiles">
+      <div class="tile"><div class="v" style="color:var(--green)">${fmt(save.money)}</div><div class="l">argent disponible</div></div>
+      <div class="tile"><div class="v">${fmt(coll)}</div><div class="l">valeur de la collection</div></div>
+      <div class="tile"><div class="v">${fmt(sealed)}</div><div class="l">valeur du scellé</div></div>
+      <div class="tile"><div class="v ${net >= 0 ? "up" : "down"}">${net >= 0 ? "+" : "−"}${fmt(Math.abs(net))}</div><div class="l">bilan (départ : ${fmt(START_MONEY)})</div></div>
+      <div class="tile"><div class="v">${totalPacks}</div><div class="l">boosters ouverts</div></div>
+      <div class="tile"><div class="v">${fmt(save.spent)}</div><div class="l">dépensé en boutique</div></div>
+      <div class="tile"><div class="v">${fmt(save.earned)}</div><div class="l">gagné en reventes</div></div>
+      <div class="tile"><div class="v">${fmt(save.bonus)}</div><div class="l">bonus reçus (cadeaux, récompenses)</div></div>
+      <div class="tile"><div class="v">${save.graded.length}</div><div class="l">cartes gradées${save.graded.length ? " · " + GRADES.map(g => save.graded.filter(x => x.g === g[0]).length + "×" + g[0]).filter(t => !t.startsWith("0×")).join(" ") : ""}</div></div>
+    </div>
+    <div class="setchips" style="margin:6px 0 0;justify-content:flex-start">${SETS.map(s => `<button class="chip${s.id === statsSet ? " on" : ""}" data-s="${s.id}">${s.name}<small>${save.packs[s.id] || 0}</small></button>`).join("")}</div>
+    <table class="rtable">
+      <tr><th>Rareté</th><th>Tirées</th><th>Ton taux</th><th>Taux réel (communauté)</th></tr>
+      ${rar.map(r => {
+        const n = pulled[r] || 0, R = RARITY[r];
+        const hs = set.hit.find(h => h[0] === r);
+        const announced = hs ? "1 / " + String(+(1 / hs[1]).toFixed(1)).replace(".", ",") + " boosters"
+          : r === set.fallback ? "quand pas de hit" : "dans chaque booster";
+        const mine = packs ? (n ? "1 / " + (packs / n).toFixed(1).replace(".", ",") + " boosters" : "—") : "—";
+        return `<tr style="--rc:${R.color}"><td><span class="dot"></span>${R.label}</td><td>${n}</td><td>${mine}</td><td style="color:var(--muted)">${announced}</td></tr>`;
+      }).join("")}
+    </table>
+    <div><h3 style="margin:6px 0 10px">Derniers hits</h3><div class="hits" id="hits"></div></div>
+    <div><button class="btn ghost" id="reset">Tout recommencer (${fmt(START_MONEY)}, collection vide)</button></div>`;
+  box.querySelectorAll(".setchips .chip").forEach(b => b.onclick = () => { statsSet = b.dataset.s; renderStats(); });
+  const hits = box.querySelector("#hits");
+  if (!save.hits.length) hits.innerHTML = `<span style="color:var(--muted)">Pas encore de hit… ouvre des boosters !</span>`;
+  save.hits.forEach(id => { const c = BY_ID[id]; if (!c) return; const s = document.createElement("div"); s.className = "slot"; s.appendChild(cardEl(c, { price: true })); s.onclick = () => openModal(c); hits.appendChild(s); });
+  const rb = box.querySelector("#reset");
+  rb.onclick = () => {
+    if (!resetArmed) { resetArmed = true; rb.textContent = "Sûr ? Clique encore pour tout effacer"; setTimeout(() => { resetArmed = false; rb.textContent = `Tout recommencer (${fmt(START_MONEY)}, collection vide)`; }, 3000); return; }
+    save = fresh(); persist(); updateCounter(); resetArmed = false; resetStage(); renderStats();
+  };
+}
+
+/* =====================================================================
+   BONUS : récompenses de collection et cadeau du jour
+   ===================================================================== */
+const coverage = setId => CARDS.filter(c => c.set === setId && has(c.id)).length / POOL_SIZE[setId] * 100;
+const nextReward = setId => REWARDS.find(([pct]) => !save.rewards[setId + ":" + pct]);
+function checkRewards() {
+  for (const s of SETS) if (s.unlock && isUnlocked(s.id) && !save.unlocked.includes(s.id)) {
+    save.unlocked.push(s.id); persist();
+    bannerLater(`${s.name} débloquée !`, s.color, "Nouvelle série dans la boutique · " + s.unlock.toLocaleString("fr-FR") + " boosters ouverts");
+  }
+  for (const s of SETS) {
+    const cov = coverage(s.id);
+    for (const [pct, amount] of REWARDS) {
+      const key = s.id + ":" + pct;
+      if (save.rewards[key] || cov < pct) continue;
+      save.rewards[key] = Date.now(); bonus(amount); persist();
+      bannerLater(`${s.name} à ${pct} % !`, s.color, "Récompense de collection · +" + fmt(amount));
+    }
+  }
+  if (!save.rewards.pika && POOL["30th"].PR.every(c => has(c.id))) {
+    save.rewards.pika = Date.now(); bonus(PIKA_REWARD); persist();
+    bannerLater("Les 30 Pikachu !", "#ffd21f", "Récompense de collection · +" + fmt(PIKA_REWARD));
+  }
+}
+const today = () => new Date().toLocaleDateString("sv");   // AAAA-MM-JJ, à l'heure locale
+/* boosters gratuits : recharge + compte à rebours, vérifiés chaque seconde */
+function freeTick() {
+  if (!save.free && Date.now() >= save.freeAt) {
+    save.free = FREE_COUNT; bonus(FREE_CASH); persist(); updateCounter(true);
+    bannerLater("10 boosters gratuits !", "#5ad19a", `+ ${fmt(FREE_CASH)} · ils t'attendent dans l'onglet Ouvrir`);
+    if (state === "pack" && !document.getElementById("view-open").hidden) renderPicker();
+  }
+  for (const id of ["freeTimer", "freeTimer2"]) { const t = document.getElementById(id); if (t) t.textContent = mmss(save.freeAt - Date.now()); }
+}
+setInterval(freeTick, 1000);
+function dailyGift() {
+  if (save.gift === today()) return;
+  save.gift = today(); bonus(DAILY_GIFT); persist();
+  bannerLater("Cadeau du jour", "#4ce08a", "+" + fmt(DAILY_GIFT) + " · reviens demain !");
+}
+
+/* =====================================================================
+   NAVIGATION
+   ===================================================================== */
+let lastMoney = save.money;
+function updateCounter(bump = false) {
+  checkRewards();
+  const total = Object.values(save.boosters).reduce((a, b) => a + b, 0) + save.free;
+  const badge = document.getElementById("cPacks");
+  badge.textContent = total; badge.hidden = !total;
+  const m = document.getElementById("money");
+  m.textContent = fmt(save.money);
+  m.classList.toggle("bad", save.money < 10_00);
+  if (bump || save.money !== lastMoney) { m.classList.add("bump"); setTimeout(() => m.classList.remove("bump"), 180); }
+  lastMoney = save.money;
+  document.getElementById("collVal").textContent = fmt(ownedValue());
+}
+function show(v) {
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
+  ["shop", "open", "binder", "stats"].forEach(k => document.getElementById("view-" + k).hidden = k !== v);
+  if (v !== "binder") { selling = false; picked = {}; document.querySelector(".sellbar")?.remove(); }
+  if (v === "shop") renderShop();
+  if (v === "open") { if (state === "summary") resetStage(); else if (state === "pack") renderPicker(); }
+  if (v === "binder") renderBinder();
+  if (v === "stats") renderStats();
+  scrollTo(0, 0);
+}
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => show(b.dataset.view));
+updateCounter();
+// premier lancement : direction la boutique
+show(save.free || Object.values(save.boosters).some(n => n > 0) ? "open" : "shop");
+if (topUp) { persist(); bannerLater("Nouveau départ : " + fmt(START_MONEY), "#5ad19a", "+" + fmt(topUp) + " ajoutés à ta partie"); }
+freeTick(); dailyGift(); updateCounter();
+</script>
+</body>
+</html>
