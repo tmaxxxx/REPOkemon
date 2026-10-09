@@ -83,7 +83,7 @@ for c in raw["hgss1"]:
 R30 = {"Commune": "C", "Rare": "R", "Double rare": "DR", "Pikachu Rare": "PR", "Illustration rare": "IR",
        "Illustration spéciale rare": "SIR", "Futuristic Rare": "FR"}
 for c in raw["30th"]:
-    if not c["localId"].isdigit(): continue  # Mew RGB : pas d'image disponible
+    if not c["localId"].isdigit(): continue  # Mew RGB : ajoutés plus bas
     n = int(c["localId"])
     add(f"S{n:03d}", "30th", n, f"{n:03d}/128", c["name"], R30[c["rarity"]], usd(c), f"cartes/{n:03d}.jpg", c["id"])
 # Collection Classique : C01…C30 (ordre de nos images) -> numéro TCGdex
@@ -92,6 +92,9 @@ cc = {int(c["localId"]): c for c in raw["30th-c"]}
 for i, k in enumerate(CLASSIC, 1):
     c = cc[k]
     add(f"C{i:02d}", "30th", 200 + i, f"{k:03d}/030 CC", c["name"], "CC", usd(c), f"cartes/C{i:02d}.jpg", c["id"])
+# Mew RGB (R, G, B) : pas d'image ni de cote TCGplayer dans TCGdex -> image et cote TCGplayer (market price, 09/10/2026)
+for i, (k, price) in enumerate((("R", 6000.27), ("G", 3738.75), ("B", 1702.50)), 1):
+    add(f"RGB-{k}", "30th", 400 + i, f"{k}/RGB", "Mew RGB", "RGB", price, f"cartes/RGB-{k}.jpg", f"30th-{k}")
 for n, t in [(9, "Plante"), (10, "Feu"), (11, "Eau"), (12, "Électrique"), (13, "Psy"), (14, "Combat"), (15, "Obscurité"), (16, "Métal")]:
     add(f"E{n:02d}", "30th", 300 + n, f"{n:03d} É", "Énergie " + t, "E", 0.05, f"cartes/E{n:02d}.jpg", None)
 

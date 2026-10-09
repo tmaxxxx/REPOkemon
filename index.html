@@ -614,6 +614,7 @@ const RARITY = {
   AAS:  { label: "Alternative Secrète",        sym: "✦A",  color: "#ff2e63", rank: 5, holo: .52 },
   PRIME:{ label: "Rare Prime",                 sym: "P",   color: "#c0c8d8", rank: 3, holo: .4 },
   LEG:  { label: "LÉGENDE",                    sym: "L",   color: "#ffb347", rank: 4, holo: .46 },
+  RGB:  { label: "Rare RGB",                   sym: "RGB", color: "#ff3b3b", rank: 5, holo: .55 },
   BWR:  { label: "Rare Noir & Blanc",          sym: "◐",   color: "#f4f4f4", rank: 5, holo: .5 },
 };
 
@@ -624,14 +625,15 @@ const RARITY = {
    Sources : TCGplayer (151 : 95 % IC ; Évolution Céleste : 8 000 boosters ; 30e Anniversaire),
    Évolutions Prismatiques (taux publiés au lancement), WOTC 1999 (holo ≈ 1 booster sur 3),
    Primo-Choc et Explosion Plasma (ThePriceDex, données communautaires),
+   Mew RGB : ~1 booster sur 3 200 pour l'un des trois (estimation communautaire, aucun chiffre officiel),
    Foudre Noire (TCGplayer ; Rare Noir & Blanc : ~2 sur 1 000 boosters, comptage Reddit),
    HeartGold SoulSilver (Card Codex : holo 1 carte sur 59 boosters × 14, Prime 1/6, LÉGENDE 1/12).
    ===================================================================== */
 const SETS = [
   { id: "30th", unlock: 0, name: "30e Anniversaire", year: 2026, color: "#ffd76a", booster: "696613",
-    desc: "Le set anniversaire : 30 Pikachu à collectionner, la Collection Classique et les Futuristes.",
+    desc: "Le set anniversaire : 30 Pikachu à collectionner, la Collection Classique, les Futuristes et le mythique Mew RGB.",
     order: ["E", "C", "C", "C/R", "HIT", "PR"],
-    hit: [["DR", 1/4.4], ["IR", .1972], ["CC", 1/10.5], ["SIR", .0488], ["FR", 1/100]], fallback: "R" },
+    hit: [["DR", 1/4.4], ["IR", .1972], ["CC", 1/10.5], ["SIR", .0488], ["FR", 1/100], ["RGB", 1/3200]], fallback: "R" },
   { id: "151", unlock: 0, name: "Écarlate et Violet — 151", year: 2023, color: "#ff5c7a", booster: "504467",
     desc: "Les 151 Pokémon de Kanto. La chasse : Dracaufeu-ex Illustration Spéciale Rare.",
     order: ["C", "C", "C", "C", "U", "U", "U", "REV", "REV", "HIT"],
