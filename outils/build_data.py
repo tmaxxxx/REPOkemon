@@ -66,6 +66,19 @@ for key, folder, total, ex, ace in (("xy5", "primo", 160, {19, 29, 38, 54, 55, 8
         price = MISSING.get(c["id"]) or usd(c)
         add(f"{folder}-{n}", folder, n, f"{n}/{total}", c["name"], r, price, f"cartes/{folder}/{c['localId']}.webp", c["id"])
 
+# --- Foudre Noire (Écarlate et Violet, 2025) -------------------------------
+for c in raw["sv10.5b"]:
+    n = int(c["localId"])
+    add(f"blk-{n}", "blk", n, f"{n:03d}/086", c["name"], {**SV, "Rare Noir Blanc": "BWR"}[c["rarity"]], usd(c), f"cartes/blk/{c['localId']}.webp", c["id"])
+
+# --- HeartGold SoulSilver (2010) ----------------------------------------------
+# la Lithographie d'Alph (ONE) n'est pas mise : aucun taux de drop connu
+HGSS = {"Commune": "C", "Peu Commune": "U", "Rare": "R", "Holo Rare": "H", "Rare Prime": "PRIME", "LÉGENDE": "LEG"}
+for c in raw["hgss1"]:
+    if not c["localId"].isdigit(): continue
+    n = int(c["localId"])
+    add(f"hgss-{n}", "hgss", n, f"{n}/123", c["name"], HGSS[c["rarity"]], usd(c), f"cartes/hgss/{c['localId']}.webp", c["id"])
+
 # --- 30e Anniversaire (images déjà dans cartes/) -----------------------------
 R30 = {"Commune": "C", "Rare": "R", "Double rare": "DR", "Pikachu Rare": "PR", "Illustration rare": "IR",
        "Illustration spéciale rare": "SIR", "Futuristic Rare": "FR"}
@@ -110,6 +123,11 @@ PRODUCTS = [
     ("plasma",   98573, "booster",  1,    275.45),
     ("plasma",   98572, "display",  36, 12311.00),  # médiane de 5 ventes eBay (mai-août 2026 : 10 368 à 13 250 $)
     ("plasma",  190571, "etb",      8,  6850.00),   # ventes eBay 2026 entre 6 000 et 7 700 $ (image : CoolStuffInc 190571)
+    # cotes TCGplayer (market price) relevées le 09/10/2026 via tcgcsv.com
+    ("blk",     630434, "booster",  1,     14.50),
+    ("blk",     630431, "bundle",   6,     93.60),
+    ("blk",     630686, "etb",      9,    161.76),
+    ("hgss",     98530, "booster",  1,    466.66),
 ]
 out = "/* Généré par outils/build_data.py — ne pas modifier à la main */\n"
 out += f"const PRICE_DATE = {json.dumps(datetime.date.today().isoformat())};\n"

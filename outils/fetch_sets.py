@@ -3,7 +3,7 @@ Usage : python3 outils/fetch_sets.py            -> toutes les séries, écrit ou
         python3 outils/fetch_sets.py xy5 bw10   -> seulement ces séries (les autres sont gardées)"""
 import json, sys, urllib.request, concurrent.futures as cf, pathlib
 
-SETS = ["base1", "base3", "sv03.5", "swsh7", "sv08.5", "30th", "30th-c", "xy5", "bw10"]
+SETS = ["base1", "base3", "sv03.5", "swsh7", "sv08.5", "30th", "30th-c", "xy5", "bw10", "sv10.5b", "hgss1"]
 API = "https://api.tcgdex.net/v2"
 RAW = pathlib.Path(__file__).with_name("raw.json")
 

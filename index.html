@@ -612,6 +612,9 @@ const RARITY = {
   AA:   { label: "Alternative",                sym: "★A",  color: "#34e0a1", rank: 4, holo: .42 },
   FR:   { label: "Futuriste Rare",             sym: "✦",   color: "#2ff5c8", rank: 5, holo: .52 },
   AAS:  { label: "Alternative Secrète",        sym: "✦A",  color: "#ff2e63", rank: 5, holo: .52 },
+  PRIME:{ label: "Rare Prime",                 sym: "P",   color: "#c0c8d8", rank: 3, holo: .4 },
+  LEG:  { label: "LÉGENDE",                    sym: "L",   color: "#ffb347", rank: 4, holo: .46 },
+  BWR:  { label: "Rare Noir & Blanc",          sym: "◐",   color: "#f4f4f4", rank: 5, holo: .5 },
 };
 
 /* =====================================================================
@@ -620,7 +623,9 @@ const RARITY = {
    sinon on reçoit la carte "fallback".
    Sources : TCGplayer (151 : 95 % IC ; Évolution Céleste : 8 000 boosters ; 30e Anniversaire),
    Évolutions Prismatiques (taux publiés au lancement), WOTC 1999 (holo ≈ 1 booster sur 3),
-   Primo-Choc et Explosion Plasma (ThePriceDex, données communautaires).
+   Primo-Choc et Explosion Plasma (ThePriceDex, données communautaires),
+   Foudre Noire (TCGplayer ; Rare Noir & Blanc : ~2 sur 1 000 boosters, comptage Reddit),
+   HeartGold SoulSilver (Card Codex : holo 1 carte sur 59 boosters × 14, Prime 1/6, LÉGENDE 1/12).
    ===================================================================== */
 const SETS = [
   { id: "30th", unlock: 0, name: "30e Anniversaire", year: 2026, color: "#ffd76a", booster: "696613",
@@ -647,6 +652,14 @@ const SETS = [
     desc: "Noir et Blanc, la Team Plasma. Le Graal : Palkia-EX et Dialga-EX Full Art.",
     order: ["C", "C", "C", "C", "C", "U", "U", "U", "REV", "HIT"],
     hit: [["H", 1/4.2], ["EX", 1/18], ["ACE", 1/24], ["UR", 1/35.5], ["GR", 1/112.5]], fallback: "R" },
+  { id: "blk", unlock: 500, name: "Foudre Noire", year: 2025, color: "#9b7bff", booster: "630434",
+    desc: "Retour à Unys avec Zekrom-ex. 69 Illustration Rares, et le Graal : les Rares Noir & Blanc (Zekrom-ex, Victini).",
+    order: ["C", "C", "C", "C", "U", "U", "U", "REV", "REV", "HIT"],
+    hit: [["DR", 1/5], ["IR", 1/6], ["UR", 1/17], ["SIR", 1/80], ["BWR", 1/500]], fallback: "R" },
+  { id: "hgss", unlock: 500, name: "HeartGold SoulSilver", year: 2010, color: "#e8c547", booster: "98530",
+    desc: "Johto, les remakes d'Or et Argent : les Pokémon Prime et les LÉGENDE Ho-Oh et Lugia (une carte en deux moitiés).",
+    order: ["C", "C", "C", "C", "C", "U", "U", "U", "REV", "HIT"],
+    hit: [["H", 1/4.2], ["PRIME", 1/6], ["LEG", 1/12]], fallback: "R" },
   { id: "fossile", unlock: 1000, name: "Fossile", year: 1999, color: "#d9b26a", booster: "138134",
     desc: "Troisième extension de l'histoire (édition illimitée). Ectoplasma, Dracolosse, Lokhlass holo.",
     order: ["C", "C", "C", "C", "C", "C", "C", "U", "U", "U", "HIT"],
@@ -1281,6 +1294,7 @@ function renderShop() {
       Grading ${GRADER} : ${fmt(GRADE_COST)} par carte, note de 5 à 10 (10 = cote ×3, 9 = ×1,5, 8 et 7 = inchangée, 6 = ×0,8, 5 = ×0,65). Cotes des cartes : API TCGdex (TCGplayer, ou Cardmarket converti en dollars),
       actualisables depuis le classeur. Revente à 100 % de la cote, sans frais ; un booster en vrac se revend au prix par booster le plus bas de la série.
       Taux de drop : taux réels relevés par la communauté (TCGplayer et autres), voir l'onglet Stats.
+      Les cartes Foudre Noire sont en version anglaise (pas encore d'images françaises disponibles).
     </div></details></div>`;
   box.querySelectorAll(".setchips .chip").forEach(b => b.onclick = () => { shopSet = b.dataset.s; renderShop(); });
 
