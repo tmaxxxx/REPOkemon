@@ -249,10 +249,6 @@ section[hidden] { display: none !important; }
 #deck::before {
   content: ''; position: absolute; inset: 0; border-radius: 4.5% / 3.2%; opacity: 0; transition: opacity .2s;
 }
-#deck.suspense::before { opacity: 1; animation: leak .35s ease-in-out infinite alternate; }
-#deck.suspense.big { animation: bigshake .12s linear infinite; }
-@keyframes leak { from { box-shadow: 0 0 25px 4px var(--rc); } to { box-shadow: 0 0 80px 22px var(--rc); } }
-@keyframes bigshake { 0% { translate: -3px 0; } 50% { translate: 3px 1px; } 100% { translate: -2px -1px; } }
 .fcard {
   position: absolute; inset: 0; cursor: pointer;
   transition: transform .55s cubic-bezier(.2,.8,.2,1), opacity .5s;
@@ -592,7 +588,7 @@ details.info > :not(summary) { margin-top: 10px; }
 <script>
 /* =====================================================================
    RARETÉS (toutes séries confondues)
-   rank : 0-1 = carte normale · 2+ = hit (brille, bannière) · 4+ = flash + confettis
+   rank : 0-1 = carte normale · 2+ = hit (brille, bannière) · 4+ = flash + onde de choc
    holo : intensité du reflet arc-en-ciel (0 = la carte ne brille pas : tout ce qui n'est pas au moins holo)
    ===================================================================== */
 const RARITY = {
@@ -881,11 +877,10 @@ function burst(x, y, color, n = 60, power = 9) {
   }
   if (!fxRunning) { fxRunning = true; requestAnimationFrame(tick); }
 }
-function confetti(colors) {
-  for (let i = 0; i < 160; i++) {
-    parts.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * .5, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 4,
-      life: 1, d: 0.004, size: 4 + Math.random() * 5, c: rnd(colors), rect: true, rot: Math.random() * 6 });
-  }
+/* onde de choc : anneaux lumineux qui s'élargissent depuis la carte (remplace les confettis) */
+function shockwave(x, y, colors) {
+  [0, 9, 18].forEach((delay, k) => parts.push({ x, y, vx: 0, vy: 0, ring: true, r: 10, vr: 9 - k * 1.5, wait: delay,
+    life: 1, d: 0.022, c: colors[k % colors.length], w: 6 - k * 1.5 }));
   if (!fxRunning) { fxRunning = true; requestAnimationFrame(tick); }
 }
 function drawStar(x, y, r) {
@@ -898,6 +893,13 @@ function tick() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, fx.width, fx.height); ctx.setTransform(d, 0, 0, d, 0, 0);
   parts = parts.filter(p => p.life > 0 && p.y < innerHeight + 50);
   for (const p of parts) {
+    if (p.ring) {
+      if (p.wait > 0) { p.wait--; continue; }
+      p.r += p.vr; p.vr *= .97; p.life -= p.d;
+      ctx.globalAlpha = Math.max(0, p.life); ctx.strokeStyle = p.c; ctx.lineWidth = p.w * p.life + .5;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.stroke();
+      continue;
+    }
     p.x += p.vx; p.y += p.vy; p.vy += p.rect ? 0.02 : 0.18; p.vx *= .99; p.life -= p.d; p.rot += .1;
     ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.c;
     if (p.rect) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); ctx.restore(); }
@@ -923,7 +925,7 @@ let bannerAt = 0;
 /* bannière "de bonus" : attend la fin de celle en cours (un hit passe en premier) */
 function bannerLater(text, color, sub) {
   const at = Math.max(Date.now(), bannerAt + 2500, laterAt + 2500); laterAt = at;
-  setTimeout(() => { banner(text, color, sub); confetti([color, "#fff", "#4ce08a"]); }, at - Date.now());
+  setTimeout(() => { banner(text, color, sub); shockwave(innerWidth / 2, innerHeight / 2, [color, "#fff", "#4ce08a"]); }, at - Date.now());
 }
 let laterAt = 0;
 let toastT;
@@ -1115,7 +1117,7 @@ function reveal(i) {
     burst(cx, cy, [R.color, "#ffffff", R.color], 40 + lv * 30, 6 + lv * 2);
     banner(R.label + " !", R.color, priceOf(card) >= 10_00 ? card.name + " · " + fmt(priceOf(card)) : "");
   } else if (lv === 1) burst(cx, cy, [R.color, "#ffffff"], 25, 5);
-  if (lv >= 4) { flash(R.color); confetti([R.color, "#ffffff", "#ffd76a", "#4ce08a"]); }
+  if (lv >= 4) { flash(R.color); shockwave(cx, cy, [R.color, "#ffffff", "#ffd76a"]); }
   hint.textContent = i < current.length - 1 ? `${TAP} pour la carte suivante (${i + 1}/${current.length})` : `${TAP} pour voir ton booster`;
 }
 
@@ -1138,15 +1140,6 @@ async function advance() {
     await wait(350);
     if (fast) fastSummary(); else showSummary();
     busy = false; return;
-  }
-  // suspense : la carte suivante est un hit -> elle "brille" derrière la carte du dessus
-  const nextCard = current[idx + 1], lv = level(nextCard);
-  if (lv >= 2) {
-    deck.style.setProperty("--rc", RARITY[nextCard.rarity].color);
-    deck.classList.add("suspense"); if (lv >= 4) deck.classList.add("big");
-    hint.textContent = "…";
-    await wait(lv >= 4 ? 1600 : lv >= 3 ? 1100 : 750);
-    deck.classList.remove("suspense", "big");
   }
   top.classList.add("out");
   idx++;
@@ -1628,7 +1621,7 @@ async function gradeCard(c, btn) {
   if (!document.getElementById("view-binder").hidden) renderBinder();
   const G = GRADE[x.g], r = m.querySelector(".mcard").getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
   const diff = gradedPrice(x) - priceOf(c), sub = `${c.name} · ${fmt(gradedPrice(x))} (${diff >= 0 ? "+" : "−"}${fmt(Math.abs(diff))})`;
-  if (x.g === 10) { flash("#ffd76a"); confetti(["#ffd76a", "#fff", "#c8102e"]); banner(`${GRADER} 10 · GEM MINT !`, "#ffd76a", sub); }
+  if (x.g === 10) { flash("#ffd76a"); shockwave(cx, cy, ["#ffd76a", "#fff", "#c8102e"]); banner(`${GRADER} 10 · GEM MINT !`, "#ffd76a", sub); }
   else if (x.g === 9) { burst(cx, cy, ["#4ce08a", "#fff"], 90, 10); banner(`${GRADER} 9 · MINT`, "#4ce08a", sub); }
   else if (x.g <= 6) { banner(`${GRADER} ${x.g} · ${G[1]}`, "#ff6b6b", sub); }
   else toast(`${GRADER} ${x.g} · ${G[1]} : la cote ne bouge pas`);
