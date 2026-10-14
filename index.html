@@ -1033,7 +1033,7 @@ function renderPicker() {
     hint.textContent = has ? HINT : "";
     btnFast.disabled = left() < 2;
     controls.hidden = !has;
-    btnFast.textContent = `⚡ Ouvrir ×${Math.min(10, Math.max(2, left()))} d'un coup · ${fmt(FAST_FEE)}`;
+    btnFast.textContent = `⚡ Ouvrir ×${Math.min(10, Math.max(2, left()))} d'un coup · ${fmt(FAST_FEE)}${TOUCH ? "" : " · touche O"}`;
   }
 }
 
@@ -1143,6 +1143,11 @@ addEventListener("keydown", e => {
   if (e.code === "Space" || e.key === "Enter") {
     e.preventDefault();
     if (state === "pack") openPack(); else if (state === "deck") advance(); else if (state === "summary") resetStage();
+  }
+  // O = ouverture rapide ×10 (depuis le booster fermé ou le récap)
+  if (e.key.toLowerCase() === "o" && !e.metaKey && !e.ctrlKey && !e.altKey && !e.repeat) {
+    if (state === "summary") resetStage();
+    if (state === "pack" && !controls.hidden && !btnFast.disabled) btnFast.click();
   }
 });
 
