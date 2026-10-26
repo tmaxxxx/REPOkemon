@@ -602,7 +602,7 @@ details.info > :not(summary) { margin-top: 10px; }
 .bfront .strap { position: absolute; right: 6%; top: 0; bottom: 0; width: 4.5%; background: linear-gradient(90deg, #00000080, #1c1424 30%, #2a2033 60%, #00000080); box-shadow: 0 0 10px #0008; }
 .bfront .art {
   position: absolute; left: 14%; right: 17%; top: 20%; bottom: 20%; border-radius: 12px;
-  background-size: 150%; background-position: 50% 24%;   /* zoom sur l'illustration de la carte */
+  background-size: cover; background-position: center;   /* illustration du booster, découpée sans ses logos (couvertures/) */
   box-shadow: 0 0 0 4px #00000055, 0 0 0 5px #ffffff25, 0 18px 40px #000a, inset 0 0 30px #0007;
   transition: transform .5s;
 }
@@ -1871,11 +1871,10 @@ function bookPages(list) {
 }
 function bookFront() {
   const cards = CARDS.filter(c => c.set === binderSet), have = cards.filter(c => has(c.id)).length;
-  // la carte phare : la plus chère de la série (sauf les Mew RGB, aux couleurs inversées, peu lisibles en couverture)
-  const pool = cards.filter(c => c.rarity !== "RGB"), chase = pool.reduce((a, c) => priceOf(c) > priceOf(a) ? c : a, pool[0]);
+  // l'illustration officielle de la série : celle de son booster
   const el = document.createElement("div");
   el.className = "bfront"; el.style.setProperty("--sc", SET[binderSet].color);
-  el.innerHTML = `<div class="spine"></div><div class="art" style="background-image:url('${chase.img}')" title="${chase.name}"></div>
+  el.innerHTML = `<div class="spine"></div><div class="art" style="background-image:url('couvertures/${binderSet}.webp')"></div>
     <img class="logo" src="logos/${binderSet}.webp" alt="${SET[binderSet].name}" onerror="this.remove()"><div class="strap"></div>
     <div class="foot"><span><b>${have}</b> / ${cards.length}</span><span>Ouvrir →</span></div>`;
   return el;
