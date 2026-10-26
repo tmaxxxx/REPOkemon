@@ -143,7 +143,7 @@ section[hidden] { display: none !important; }
 .pack {
   --cut: .13;
   position: absolute; height: calc(var(--cw) * 88 / 63 * 1.06); aspect-ratio: var(--ar, .55);
-  cursor: pointer; touch-action: none;
+  cursor: grab; touch-action: none; perspective: 1100px;
   animation: float 3.2s ease-in-out infinite;
   filter: drop-shadow(0 30px 40px #000a);
 }
@@ -151,6 +151,7 @@ section[hidden] { display: none !important; }
 /* le booster arrête de flotter sous la souris : les pointillés restent sous le curseur */
 .pack:not(.shake):not(.opening):hover { animation-play-state: paused; }
 .pack.near, .pack.tearing { cursor: ew-resize; }
+.pack.spinning { cursor: grabbing; }
 .pack:hover { filter: drop-shadow(0 30px 40px #000a) brightness(1.06); }
 .pack.near .tearline, .pack.tearing .tearline { opacity: 1; filter: drop-shadow(0 0 6px #fff); }
 @keyframes float { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-14px) rotate(1.5deg); } }
@@ -162,7 +163,23 @@ section[hidden] { display: none !important; }
   60% { transform: translate(-4px, 1px) rotate(-2deg); }
   80% { transform: translate(4px, -1px) rotate(2deg); }
 }
-.pack-top, .pack-body { position: absolute; left: 0; right: 0; background-image: var(--pimg); background-repeat: no-repeat; }
+/* booster en 3D : il s'incline vers la souris, a une épaisseur et un dos, et on peut le faire tourner */
+.pack3d { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.pack-top, .pack-body { position: absolute; left: 0; right: 0; background-image: var(--pimg); background-repeat: no-repeat; backface-visibility: hidden; }
+/* calques et dos assombris par un voile, découpé à la forme du booster */
+.pack-layer, .pack-back {
+  position: absolute; inset: 0; background: linear-gradient(var(--shade), var(--shade)), var(--pimg) center / 100% 100% no-repeat;
+  -webkit-mask: var(--pimg) center / 100% 100% no-repeat; mask: var(--pimg) center / 100% 100% no-repeat; transition: opacity .3s;
+}
+.pack-layer { --shade: #000000b0; transform: translateZ(var(--z)); }
+.pack-back { --shade: #0b0f1fa0; transform: translateZ(-7px) rotateY(180deg); backface-visibility: hidden; }
+/* reflet de lumière qui suit l'inclinaison */
+.pack-glare {
+  position: absolute; inset: 0; pointer-events: none; transform: translateZ(.5px); backface-visibility: hidden;
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 30%), #ffffff59, #ffffff14 28%, transparent 55%);
+  -webkit-mask: var(--pimg) center / 100% 100% no-repeat; mask: var(--pimg) center / 100% 100% no-repeat; transition: opacity .3s;
+}
+.pack.opening .pack-layer, .pack.opening .pack-back, .pack.opening .pack-glare { opacity: 0; }
 .pack-top { top: 0; height: calc(var(--cut) * 100%); background-size: 100% calc(100% / var(--cut)); background-position: top;
   transition: transform .7s cubic-bezier(.5,-0.3,.6,1), opacity .7s; }
 .pack-body { top: calc(var(--cut) * 100%); bottom: 0; background-size: 100% calc(100% / (1 - var(--cut))); background-position: bottom;
@@ -550,10 +567,12 @@ details.info > :not(summary) { margin-top: 10px; }
     <div class="picker" id="picker"></div>
     <div class="nextunlock" id="nextunlock"></div>
     <div id="stage">
-      <div id="pack" class="pack">
+      <div id="pack" class="pack"><div class="pack3d">
+        <div class="pack-back"></div>
         <div class="pack-top"><div class="tearline"></div><div class="tearprog"></div></div>
         <div class="pack-body"></div>
-      </div>
+        <div class="pack-glare"></div>
+      </div></div>
       <div id="deck"></div>
       <div id="summary" hidden></div>
     </div>
@@ -1056,7 +1075,11 @@ function tearAt(e) {   // position du curseur le long de la ligne, de 0 à 1
 }
 pack.addEventListener("pointerdown", e => {
   dragged = false;   // remis à zéro à chaque appui : un simple clic n'importe où sur le booster l'ouvre toujours
-  if (state !== "pack" || !onLine(e)) return;
+  if (state === "pack" && !onLine(e)) {   // ailleurs que sur les pointillés : on attrape le booster pour le faire tourner
+    spin = { x: e.clientX, y: e.clientY }; rot.vy = 0;
+    pack.setPointerCapture(e.pointerId); return;
+  }
+  if (state !== "pack") return;
   const x = tearAt(e);
   drag = { from: x, dir: x < .5 ? 1 : -1 };   // on déchire depuis le bord le plus proche
   pack.setPointerCapture(e.pointerId); pack.classList.add("tearing");
@@ -1064,6 +1087,14 @@ pack.addEventListener("pointerdown", e => {
   dragged = false;
 });
 pack.addEventListener("pointermove", e => {
+  const r = pack.getBoundingClientRect();
+  mouse = { x: (e.clientX - r.left) / r.width - .5, y: (e.clientY - r.top) / r.height - .5 };
+  if (spin) {
+    const dx = e.clientX - spin.x, dy = e.clientY - spin.y;
+    if (Math.abs(dx) + Math.abs(dy) > 5) { dragged = true; pack.classList.add("spinning"); }
+    rot.ry += dx * .6; rot.vy = Math.max(-35, Math.min(35, dx * .6)); rot.rx = Math.max(-30, Math.min(30, rot.rx - dy * .3));
+    spin = { x: e.clientX, y: e.clientY }; return;
+  }
   if (!drag) { pack.classList.toggle("near", state === "pack" && onLine(e)); return; }
   const x = tearAt(e), p = drag.dir > 0 ? x : 1 - x;
   if (Math.abs(x - drag.from) > .04) dragged = true;
@@ -1072,12 +1103,43 @@ pack.addEventListener("pointermove", e => {
 });
 const endTear = () => {
   pack.classList.remove("near");
+  if (spin) { spin = null; pack.classList.remove("spinning"); }
   if (!drag) return;
   drag = null; pack.classList.remove("tearing");
   prog.style.transition = "width .3s"; prog.style.width = "0"; setTimeout(() => prog.style.transition = "", 300);
 };
 pack.addEventListener("pointerup", endTear);
-pack.addEventListener("pointerleave", () => { if (!drag) pack.classList.remove("near"); });
+pack.addEventListener("pointerleave", () => { mouse = null; if (!drag) pack.classList.remove("near"); });
+
+/* 3D : épaisseur (calques sombres empilés), inclinaison vers la souris, rotation lancée à la main avec élan */
+const pack3d = pack.querySelector(".pack3d");
+for (let i = 1; i <= 6; i++) {
+  const l = document.createElement("div"); l.className = "pack-layer"; l.style.setProperty("--z", -i + "px");
+  pack3d.prepend(l);
+}
+let spin = null, mouse = null;
+const rot = { rx: 0, ry: 0, vy: 0 };
+(function turn(t) {
+  requestAnimationFrame(turn);
+  if (pack.classList.contains("gone") || document.getElementById("view-open").hidden) return;
+  if (!spin) {
+    let tx, ty;
+    if (state !== "pack" || drag || pack.classList.contains("near")) tx = ty = 0;        // bien à plat pour déchirer
+    else if (mouse) { tx = -mouse.y * 26; ty = mouse.x * 36; }                           // suit la souris
+    else { tx = Math.sin(t / 1700) * 4; ty = Math.sin(t / 2300) * 16; }                  // se balance tout seul
+    if (Math.abs(rot.vy) > .3) { rot.ry += rot.vy; rot.vy *= .95; }                      // élan après un lancer
+    else {
+      rot.vy = 0;
+      rot.ry -= Math.round((rot.ry - ty) / 360) * 360;   // revient par le chemin le plus court
+      rot.ry += (ty - rot.ry) * .08;
+    }
+    rot.rx += (tx - rot.rx) * .08;
+  }
+  pack.style.setProperty("--rx", rot.rx.toFixed(2) + "deg");
+  pack.style.setProperty("--ry", rot.ry.toFixed(2) + "deg");
+  pack.style.setProperty("--gx", (50 + rot.ry * 1.6) + "%");
+  pack.style.setProperty("--gy", (30 - rot.rx * 2) + "%");
+})(0);
 pack.addEventListener("click", () => { if (state === "pack" && !dragged) openPack(); });
 
 async function openPack() {
