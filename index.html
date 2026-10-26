@@ -582,6 +582,37 @@ details.info > :not(summary) { margin-top: 10px; }
 .leaf .lf::after { content: ""; position: absolute; inset: 0; border-radius: 10px; pointer-events: none; z-index: 9;
   background: linear-gradient(90deg, #000 0%, transparent 60%); opacity: var(--shade, 0); }
 .leaf.anim { transition: transform .7s cubic-bezier(.45,.05,.3,1); }
+/* classeur fermé : couverture simili-cuir, fenêtre avec l'illustration de la carte phare, logo officiel de la série */
+.book { transition: transform .7s cubic-bezier(.45,.05,.3,1), background .5s, box-shadow .5s; }
+.book.closed { transform: translateX(calc((var(--pw) + 38px) / -2)); background: transparent; box-shadow: none; }
+.book.closed .bk-left, .book.closed .rings { visibility: hidden; }
+.book.single.closed { transform: none; }
+.bfront {
+  position: absolute; inset: 0; border-radius: 6px 16px 16px 6px; overflow: hidden; cursor: pointer;
+  background:
+    radial-gradient(120% 80% at 30% 10%, #ffffff1a, transparent 60%),
+    repeating-radial-gradient(circle at 20% 30%, #ffffff05 0 1px, transparent 1px 3px),
+    linear-gradient(160deg, color-mix(in srgb, var(--sc) 55%, #1a1024), color-mix(in srgb, var(--sc) 22%, #0c0812));
+  box-shadow: 0 40px 90px #000c, inset 0 0 0 1px #ffffff1c, inset 14px 0 18px -8px #0009;
+}
+.bfront::before {   /* coutures */
+  content: ""; position: absolute; inset: 3.2%; border-radius: 12px; border: 2px dashed #ffffff30; pointer-events: none;
+}
+.bfront .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 7%; background: linear-gradient(90deg, #0008, #0002 70%, #ffffff10); }
+.bfront .strap { position: absolute; right: 6%; top: 0; bottom: 0; width: 4.5%; background: linear-gradient(90deg, #00000080, #1c1424 30%, #2a2033 60%, #00000080); box-shadow: 0 0 10px #0008; }
+.bfront .art {
+  position: absolute; left: 14%; right: 17%; top: 20%; bottom: 20%; border-radius: 12px;
+  background-size: 150%; background-position: 50% 24%;   /* zoom sur l'illustration de la carte */
+  box-shadow: 0 0 0 4px #00000055, 0 0 0 5px #ffffff25, 0 18px 40px #000a, inset 0 0 30px #0007;
+  transition: transform .5s;
+}
+.bfront .art::after { content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(125deg, #ffffff40 0%, #ffffff00 30%, #ffffff00 65%, #ffffff18 100%); }
+.bfront:hover .art { transform: scale(1.02); }
+.bfront .logo { position: absolute; left: 10%; right: 13%; top: 4.5%; height: 19%; object-fit: contain; filter: drop-shadow(0 6px 12px #000c); }
+.bfront .foot { position: absolute; left: 10%; right: 13%; bottom: 6.5%; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #ffffffcc; font-weight: 600; }
+.bfront .foot b { color: var(--gold); font-size: 16px; }
+.bfront .foot span:last-child { animation: nudge 1.8s ease-in-out infinite; }
 .bk-nav { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: #ffffff0a; color: var(--txt); font-size: 24px; cursor: pointer; flex: none; transition: background .2s, transform .2s; }
 .bk-nav:hover:not(:disabled) { background: #ffffff1c; transform: scale(1.08); }
 .bk-nav:disabled { opacity: .25; cursor: default; }
@@ -1838,8 +1869,20 @@ function bookPages(list) {
   for (let i = 0; i < list.length; i += 9) pages.push({ cards: list.slice(i, i + 9) });
   return pages;
 }
+function bookFront() {
+  const cards = CARDS.filter(c => c.set === binderSet), have = cards.filter(c => has(c.id)).length;
+  // la carte phare : la plus chère de la série (sauf les Mew RGB, aux couleurs inversées, peu lisibles en couverture)
+  const pool = cards.filter(c => c.rarity !== "RGB"), chase = pool.reduce((a, c) => priceOf(c) > priceOf(a) ? c : a, pool[0]);
+  const el = document.createElement("div");
+  el.className = "bfront"; el.style.setProperty("--sc", SET[binderSet].color);
+  el.innerHTML = `<div class="spine"></div><div class="art" style="background-image:url('${chase.img}')" title="${chase.name}"></div>
+    <img class="logo" src="logos/${binderSet}.webp" alt="${SET[binderSet].name}" onerror="this.remove()"><div class="strap"></div>
+    <div class="foot"><span><b>${have}</b> / ${cards.length}</span><span>Ouvrir →</span></div>`;
+  return el;
+}
 function bookPageEl(p, no) {
   const el = document.createElement("div");
+  if (p === "none") return el;
   if (!p) { el.className = "bpage blank"; return el; }
   el.className = "bpage";
   if (p.cover) {
@@ -1874,21 +1917,22 @@ function bookPageEl(p, no) {
 function renderBook(box, list) {
   const pages = bookPages(list), single = matchMedia("(max-width: 760px)").matches, per = single ? 1 : 2;
   const nSp = Math.ceil(pages.length / per);
-  let sp = Math.min(bookSpread[binderSet] || 0, nSp - 1);
+  let sp = Math.min(bookSpread[binderSet] ?? -1, nSp - 1);   // -1 = classeur fermé
   box.innerHTML = `<div class="book-wrap"><button class="bk-nav" data-d="-1" title="Page précédente (←)">‹</button>
     <div class="book${single ? " single" : ""}"><div class="page-slot bk-left"></div><div class="rings"><i></i><i></i><i></i><i></i></div><div class="page-slot bk-right"></div></div>
     <button class="bk-nav" data-d="1" title="Page suivante (→)">›</button></div>
-    <div class="bk-foot"><span class="bk-no"></span><input type="range" min="0" max="${nSp - 1}" value="${sp}"><span>${list.length} cartes · ${pages.length - 1} pages</span></div>`;
+    <div class="bk-foot"><span class="bk-no"></span><input type="range" min="-1" max="${nSp - 1}" value="${sp}"><span>${list.length} cartes · ${pages.length - 1} pages</span></div>`;
   const book = box.querySelector(".book"), L = box.querySelector(".bk-left"), Rt = box.querySelector(".bk-right");
   const range = box.querySelector("input"), no = box.querySelector(".bk-no");
-  const pageAt = i => bookPageEl(pages[i], i);
+  const pageAt = i => i === -1 ? bookFront() : i < -1 ? bookPageEl("none") : bookPageEl(pages[i], i);
   const draw = () => {
     bookSpread[binderSet] = sp;
+    book.classList.toggle("closed", sp === -1);
     if (single) Rt.replaceChildren(pageAt(sp));
     else { L.replaceChildren(pageAt(2 * sp)); Rt.replaceChildren(pageAt(2 * sp + 1)); }
     range.value = sp;
-    no.textContent = sp === 0 ? "Couverture" : single ? `Page ${sp} / ${pages.length - 1}` : `Pages ${2 * sp}–${Math.min(2 * sp + 1, pages.length - 1)}`;
-    box.querySelectorAll(".bk-nav").forEach(b => b.disabled = +b.dataset.d < 0 ? sp === 0 : sp >= nSp - 1);
+    no.textContent = sp === -1 ? "Classeur fermé" : sp === 0 ? "Couverture" : single ? `Page ${sp} / ${pages.length - 1}` : `Pages ${2 * sp}–${Math.min(2 * sp + 1, pages.length - 1)}`;
+    box.querySelectorAll(".bk-nav").forEach(b => b.disabled = +b.dataset.d < 0 ? sp === -1 : sp >= nSp - 1);
   };
   draw();
 
@@ -1908,6 +1952,7 @@ function renderBook(box, list) {
     } else if (d > 0) { f.append(pageAt(2 * sp + 1)); b.append(pageAt(2 * sp + 2)); Rt.replaceChildren(pageAt(2 * sp + 3)); }
     else { f.append(pageAt(2 * sp)); b.append(pageAt(2 * sp - 1)); L.replaceChildren(pageAt(2 * sp - 2)); }
     leaf.append(f, b); book.appendChild(leaf);
+    if (sp === -1) book.classList.remove("closed");   // on ouvre : le classeur glisse au centre pendant que la couverture tourne
     leaf.d = d; leaf.pw = pw;
     // en simple page, « précédent » part de la position tournée (-180°) et revient à plat
     leaf.from = single && d < 0 ? -180 : 0;
@@ -1928,7 +1973,7 @@ function renderBook(box, list) {
   };
   const flip = d => {
     if (busyFlip || leaf) return;
-    if (d > 0 ? sp >= nSp - 1 : sp <= 0) return;
+    if (d > 0 ? sp >= nSp - 1 : sp <= -1) return;
     makeLeaf(d); leaf.getBoundingClientRect();
     finish(true);
   };
@@ -1949,7 +1994,7 @@ function renderBook(box, list) {
     if (!drag.on) {
       if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(e.clientY - drag.y0)) return;
       const d = dx < 0 ? 1 : -1;
-      if (d > 0 ? sp >= nSp - 1 : sp <= 0) { drag = null; return; }
+      if (d > 0 ? sp >= nSp - 1 : sp <= -1) { drag = null; return; }
       drag.on = dragged = true; book.setPointerCapture(e.pointerId);
       makeLeaf(d);
     }
