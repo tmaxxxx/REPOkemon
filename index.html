@@ -206,6 +206,73 @@ section[hidden] { display: none !important; }
 .pack.opening .pack-body { transform: translateY(85%); opacity: 0; transition-delay: .45s; }
 .pack.opening { animation: none; }
 
+/* ---------- Réserve : produits scellés en 3D, à partir des vraies photos ---------- */
+.obj { position: relative; height: 170px; aspect-ratio: var(--ar, .7); perspective: 900px; filter: drop-shadow(0 16px 20px #0009); }
+.o3d { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .3s ease-out; }
+.obj.live .o3d { transition: none; }
+.oface { position: absolute; inset: 0; background: var(--img) center / 100% 100% no-repeat; backface-visibility: hidden; }
+/* la photo est coupée en deux : le haut sert de couvercle à l'ouverture */
+.otop { clip-path: inset(0 0 69.5% 0); transition: transform .7s cubic-bezier(.5,-0.3,.6,1), opacity .7s; }
+.obot { clip-path: inset(30% 0 0 0); transition: transform .8s cubic-bezier(.6,0,.8,.4) .35s, opacity .8s .35s; }
+.olayer, .oback {
+  position: absolute; inset: 0; background: linear-gradient(var(--shade), var(--shade)), var(--img) center / 100% 100% no-repeat;
+  -webkit-mask: var(--img) center / 100% 100% no-repeat; mask: var(--img) center / 100% 100% no-repeat; transition: opacity .2s;
+}
+.olayer { --shade: #000000b0; transform: translateZ(var(--z)); }
+.oback { --shade: #0b0f1fa0; transform: translateZ(var(--z)) rotateY(180deg); backface-visibility: hidden; }
+.oglare {
+  position: absolute; inset: 0; pointer-events: none; transform: translateZ(.5px); backface-visibility: hidden;
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 30%), #ffffff59, #ffffff14 28%, transparent 55%);
+  -webkit-mask: var(--img) center / 100% 100% no-repeat; mask: var(--img) center / 100% 100% no-repeat; transition: opacity .3s;
+}
+.obj.shakeo { animation: shake .5s linear; }
+.obj.lidoff .otop { transform: translateY(-140%) rotateX(55deg); opacity: 0; }
+.obj.lidoff .obot { transform: translateY(45%); opacity: 0; }
+.obj.lidoff .olayer, .obj.lidoff .oback, .obj.lidoff .oglare { opacity: 0; }
+
+.rhead { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+.rhead h2 { font-weight: 800; letter-spacing: -.03em; font-size: 30px; margin: 0; }
+.rhead .rsub { color: var(--muted); font-weight: 600; }
+.rhead .rsub b { color: var(--txt); }
+.shelf { margin-top: 30px; }
+.shelf-t { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 15px; }
+.shelf-t i { width: 10px; height: 10px; border-radius: 50%; }
+.shelf-row {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 26px 34px; padding: 26px 24px 0;
+  background: linear-gradient(transparent 60%, #ffffff06); border-bottom: 10px solid #ffffff10; border-radius: 0 0 6px 6px;
+  box-shadow: 0 16px 24px -14px #000d;
+}
+.ritem { position: relative; background: none; border: 0; padding: 0 0 12px; color: inherit; font: inherit; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.ritem .obj { margin-bottom: 8px; }
+.ritem:hover .obj { filter: drop-shadow(0 22px 26px #000b) brightness(1.06); }
+.ritem .rn { position: absolute; top: -8px; right: -10px; z-index: 2; background: var(--gold); color: #1d1606; font-weight: 800; font-size: 12px;
+  padding: 2px 8px; border-radius: 10px; box-shadow: 0 4px 10px #0007; }
+.ritem .rname { font-weight: 700; font-size: 13.5px; }
+.ritem .rval { color: var(--muted); font-size: 12.5px; font-weight: 600; }
+
+#vault { position: fixed; inset: 0; z-index: 45; background: #050610e0; backdrop-filter: blur(10px); display: grid; place-items: center; padding: 20px; }
+#vault[hidden] { display: none; }
+.vbox { position: relative; width: min(820px, 100%); display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.vstage { position: relative; height: min(50vh, 430px); width: 100%; display: grid; place-items: center; }
+.vstage > .obj { height: 100%; max-width: 92%; cursor: grab; touch-action: none; }
+.vstage > .obj.grabbing { cursor: grabbing; }
+.vclose { position: absolute; top: 0; right: 0; z-index: 3; width: 38px; height: 38px; border-radius: 50%; border: 0; cursor: pointer;
+  background: #ffffff12; color: var(--txt); font-size: 16px; }
+.vt { font-weight: 800; font-size: 24px; letter-spacing: -.02em; }
+.vs { color: var(--muted); font-weight: 600; font-size: 14px; }
+.vs b { color: var(--txt); }
+.vbtns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; min-height: 42px; }
+.vhint { color: var(--muted); font-size: 12.5px; min-height: 16px; }
+/* les boosters qui sortent du produit ouvert */
+.vfan { position: absolute; inset: 0; pointer-events: none; }
+.vfan .obj { position: absolute; left: 50%; top: 50%; height: var(--h); pointer-events: auto;
+  animation: popout .65s cubic-bezier(.2,1.4,.4,1) both; animation-delay: var(--dl); }
+@keyframes popout {
+  from { transform: translate(-50%, -50%) translateY(40px) scale(.2); opacity: 0; }
+  to { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) rotate(var(--rot)); opacity: 1; }
+}
+
 /* ---------- Cards ---------- */
 .card {
   --rc: #b8c4d6; --holo: .2;
@@ -527,7 +594,12 @@ details.info > :not(summary) { margin-top: 10px; }
   .wallet .money { font-size: 15px; padding: 5px 10px; }
   .wallet .coll { font-size: 11px; }
   nav { grid-column: 1 / -1; grid-row: 2; flex-wrap: nowrap; }
-  nav button { flex: 1; padding: 7px 4px; font-size: 13.5px; white-space: nowrap; }
+  nav button { flex: 1 1 auto; min-width: 0; padding: 7px 2px; font-size: 12.5px; white-space: nowrap; }
+  .shelf-row { gap: 22px 20px; padding: 22px 12px 0; }
+  .ritem .obj { height: 130px; }
+  .ritem .rn { right: -4px; }
+  .vstage { height: 44vh; }
+  nav button .badge { margin-left: 3px; padding: 0 4px; min-width: 16px; font-size: 10.5px; line-height: 16px; }
   /* boosters possédés : une seule ligne qui défile au doigt */
   .picker { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; margin: 0 -16px; padding: 4px 16px 6px; scrollbar-width: none; }
   .picker::-webkit-scrollbar { display: none; }
@@ -551,6 +623,7 @@ details.info > :not(summary) { margin-top: 10px; }
   <nav>
     <button data-view="shop">Boutique</button>
     <button data-view="open" class="on">Ouvrir <span class="badge" id="cPacks">0</span></button>
+    <button data-view="reserve">Réserve</button>
     <button data-view="binder">Classeur</button>
     <button data-view="stats">Stats</button>
   </nav>
@@ -592,12 +665,17 @@ details.info > :not(summary) { margin-top: 10px; }
     <div id="binder"></div>
   </section>
 
+  <section id="view-reserve" hidden>
+    <div id="reserve"></div>
+  </section>
+
   <section id="view-stats" hidden>
     <div class="stats" id="stats"></div>
   </section>
 </main>
 
 <div id="modal" hidden></div>
+<div id="vault" hidden></div>
 <div id="flash"></div>
 <div id="banner"></div>
 <div id="toast"></div>
@@ -1442,11 +1520,16 @@ function renderCatalog() {
   more.onclick = () => { catAll = !catAll; renderCatalog(); };
 }
 
-function renderInventory() {
-  const inv = document.getElementById("inv"); inv.innerHTML = "";
+/* boosters en vrac et produits scellés possédés */
+function stock() {
   const rows = [];
   for (const s of SETS) if (save.boosters[s.id] > 0) rows.push({ p: { ...boosterOf(s.id), price: looseValue(s.id) }, n: save.boosters[s.id], booster: true });
   for (const p of PRODUCTS) if (save.sealed[p.id] > 0) rows.push({ p, n: save.sealed[p.id] });
+  return rows;
+}
+function renderInventory() {
+  const inv = document.getElementById("inv"); inv.innerHTML = "";
+  const rows = stock();
   if (!rows.length) { inv.innerHTML = `<div class="empty">Rien en stock. Achète un produit ci-dessus !</div>`; return; }
   for (const { p, n, booster } of rows) {
     const r = document.createElement("div"); r.className = "invrow";
@@ -1471,6 +1554,171 @@ function renderInventory() {
     r.append(open, sell);
     inv.appendChild(r);
   }
+}
+
+/* =====================================================================
+   RÉSERVE : les produits possédés sur des étagères, en 3D (vraies photos)
+   ===================================================================== */
+const DEPTH = { booster: 6, bundle: 12, etb: 16, display: 16 };   // épaisseur en px
+/* objet 3D fait avec la photo du produit : face (coupée en deux pour le couvercle), épaisseur, dos, reflet */
+function obj3d(p) {
+  const o = document.createElement("div"); o.className = "obj";
+  o.style.setProperty("--img", `url("${p.img}")`);
+  const img = new Image();
+  img.onload = () => o.style.setProperty("--ar", img.naturalWidth / img.naturalHeight);
+  img.src = p.img;
+  const d = DEPTH[p.kind] || 8;
+  let layers = "";
+  for (let z = 1.5; z < d; z += 1.5) layers += `<div class="olayer" style="--z:${-z}px"></div>`;
+  o.innerHTML = `<div class="o3d">${layers}<div class="oback" style="--z:${-d}px"></div>
+    <div class="oface otop"></div><div class="oface obot"></div><div class="oglare"></div></div>`;
+  return o;
+}
+function tiltTo(o, rx, ry) {
+  o.style.setProperty("--rx", rx.toFixed(2) + "deg"); o.style.setProperty("--ry", ry.toFixed(2) + "deg");
+  o.style.setProperty("--gx", 50 + ry * 1.6 + "%"); o.style.setProperty("--gy", 30 - rx * 2 + "%");
+}
+/* s'incline vers la souris quand on la passe dessus */
+function tiltable(o) {
+  o.addEventListener("pointermove", e => {
+    const r = o.getBoundingClientRect();
+    tiltTo(o, -((e.clientY - r.top) / r.height - .5) * 24, ((e.clientX - r.left) / r.width - .5) * 34);
+  });
+  o.addEventListener("pointerleave", () => tiltTo(o, 0, 0));
+}
+/* en grand : suit la souris, se balance tout seul, et tourne quand on le lance (même principe que le booster) */
+function spinnable(o) {
+  const rot = { rx: 0, ry: 0, vy: 0 };
+  let grab = null, hover = null;
+  o.classList.add("live");
+  o.addEventListener("pointerdown", e => { grab = { x: e.clientX, y: e.clientY }; rot.vy = 0; o.setPointerCapture(e.pointerId); o.classList.add("grabbing"); });
+  o.addEventListener("pointermove", e => {
+    const r = o.getBoundingClientRect();
+    hover = { x: (e.clientX - r.left) / r.width - .5, y: (e.clientY - r.top) / r.height - .5 };
+    if (!grab) return;
+    const dx = e.clientX - grab.x, dy = e.clientY - grab.y;
+    rot.ry += dx * .6; rot.vy = Math.max(-35, Math.min(35, dx * .6)); rot.rx = Math.max(-30, Math.min(30, rot.rx - dy * .3));
+    grab = { x: e.clientX, y: e.clientY };
+  });
+  const release = () => { grab = null; o.classList.remove("grabbing"); };
+  o.addEventListener("pointerup", release); o.addEventListener("pointercancel", release);
+  o.addEventListener("pointerleave", () => hover = null);
+  requestAnimationFrame(function turn(t) {
+    if (!o.isConnected) return;   // l'objet a été retiré : on arrête
+    requestAnimationFrame(turn);
+    if (grab) return tiltTo(o, rot.rx, rot.ry);
+    let tx, ty;
+    if (o.classList.contains("still")) tx = ty = 0;
+    else if (hover) { tx = -hover.y * 22; ty = hover.x * 32; }
+    else { tx = Math.sin(t / 1700) * 4; ty = Math.sin(t / 2300) * 18; }
+    if (Math.abs(rot.vy) > .3) { rot.ry += rot.vy; rot.vy *= .95; }
+    else { rot.vy = 0; rot.ry -= Math.round((rot.ry - ty) / 360) * 360; rot.ry += (ty - rot.ry) * .08; }
+    rot.rx += (tx - rot.rx) * .08;
+    tiltTo(o, rot.rx, rot.ry);
+  });
+}
+
+function renderReserve() {
+  const box = document.getElementById("reserve"), rows = stock();
+  const total = rows.reduce((a, r) => a + r.p.price * r.n, 0), nb = rows.reduce((a, r) => a + r.n, 0);
+  box.innerHTML = `<div class="rhead"><h2>Réserve</h2>
+    <div class="rsub"><b>${nb}</b> objet${nb > 1 ? "s" : ""} · valeur <b>${fmt(total)}</b></div></div>`;
+  if (!rows.length) {
+    box.insertAdjacentHTML("beforeend", `<div class="empty">Ta réserve est vide. Les produits achetés en boutique arrivent ici.</div>`);
+    return;
+  }
+  for (const s of SETS) {
+    const mine = rows.filter(r => r.p.set === s.id);
+    if (!mine.length) continue;
+    const shelf = document.createElement("div"); shelf.className = "shelf";
+    shelf.innerHTML = `<div class="shelf-t"><i style="background:${s.color}"></i>${s.name}</div><div class="shelf-row"></div>`;
+    for (const r of mine) {
+      const it = document.createElement("button"); it.className = "ritem";
+      const o = obj3d(r.p); tiltable(o);
+      it.append(o);
+      it.insertAdjacentHTML("beforeend", `<span class="rn">×${r.n}</span><div class="rname">${r.p.name}</div><div class="rval">${fmt(r.p.price)} pièce</div>`);
+      it.onclick = () => inspect(r);
+      shelf.querySelector(".shelf-row").append(it);
+    }
+    box.append(shelf);
+  }
+}
+
+const vault = document.getElementById("vault");
+function closeVault() { vault.hidden = true; vault.innerHTML = ""; }
+vault.addEventListener("click", e => { if (e.target === vault) closeVault(); });
+addEventListener("keydown", e => { if (e.key === "Escape" && !vault.hidden) closeVault(); });
+
+/* un produit en grand : on le fait tourner, on l'ouvre ou on le revend */
+function inspect(r) {
+  const { p, booster } = r, n = booster ? save.boosters[p.set] || 0 : save.sealed[p.id] || 0;
+  if (!n) { closeVault(); return renderReserve(); }
+  vault.hidden = false;
+  vault.innerHTML = `<div class="vbox"><button class="vclose" aria-label="Fermer">✕</button><div class="vstage"></div>
+    <div><div class="vt">${p.name}</div><div class="vs">${SET[p.set].name}${booster ? "" : " · " + p.sub}</div></div>
+    <div class="vs">Tu en as <b>${n}</b> · cote <b>${fmt(p.price)}</b> pièce</div>
+    <div class="vbtns"></div><div class="vhint">Attrape-le pour le faire tourner</div></div>`;
+  vault.querySelector(".vclose").onclick = closeVault;
+  const o = obj3d(p);
+  vault.querySelector(".vstage").append(o);
+  spinnable(o);
+  const btns = vault.querySelector(".vbtns");
+  const open = document.createElement("button"); open.className = "btn";
+  open.textContent = booster ? "Aller l'ouvrir" : `Ouvrir (${p.packs} boosters)`;
+  open.onclick = () => {
+    if (booster) { save.sel = p.set; persist(); closeVault(); return show("open"); }
+    openSealed(p, o);
+  };
+  const sell = document.createElement("button"); sell.className = "btn green";
+  sell.textContent = `Revendre 1 · +${fmt(sellPrice(p.price))}`;
+  sell.onclick = () => {
+    if (booster) save.boosters[p.set]--; else save.sealed[p.id]--;
+    gain(sellPrice(p.price)); persist(); updateCounter(true);
+    toast(`${p.name} revendu : +${fmt(sellPrice(p.price))}`);
+    renderReserve(); inspect(r);
+  };
+  btns.append(open, sell);
+}
+
+/* ouverture d'un produit scellé : le couvercle s'envole, les vrais boosters de la série sortent en éventail */
+async function openSealed(p, o) {
+  if (!(save.sealed[p.id] > 0)) return;
+  save.sealed[p.id]--; save.boosters[p.set] = (save.boosters[p.set] || 0) + p.packs; save.sel = p.set;
+  persist(); updateCounter(); renderReserve();
+  vault.querySelector(".vbtns").innerHTML = ""; vault.querySelector(".vhint").textContent = "";
+  o.classList.add("still"); await wait(450);
+  o.classList.add("shakeo"); await wait(500); o.classList.remove("shakeo");
+  o.classList.add("lidoff");
+  const r = o.getBoundingClientRect(), color = SET[p.set].color;
+  burst(r.left + r.width / 2, r.top + r.height * .3, [color, "#ffffff", "#ffd76a"], 90, 10);
+  await wait(500);
+
+  const stage = vault.querySelector(".vstage"), fan = document.createElement("div"); fan.className = "vfan";
+  stage.append(fan);
+  const N = p.packs, W = stage.clientWidth, H = stage.clientHeight, bp = boosterOf(p.set);
+  for (let i = 0; i < N; i++) {
+    const b = obj3d(bp); tiltable(b);
+    let h, tx, ty, rot;
+    if (N <= 12) {   // en éventail
+      const k = N > 1 ? i / (N - 1) - .5 : 0, spread = Math.min(W * .6, N * 74);
+      h = Math.min(H * .62, N > 6 ? 150 : 190, (W - spread) * .8 / .55); tx = k * spread; ty = k * k * 90; rot = k * Math.min(50, N * 5);
+    } else {         // display : 36 boosters en grille
+      const cols = 9, rows = Math.ceil(N / cols), c = i % cols, l = Math.floor(i / cols);
+      h = Math.min(H / (rows + .4), 96); tx = (c - (cols - 1) / 2) * Math.min(W / cols, h * .62); ty = (l - (rows - 1) / 2) * h * .92; rot = (Math.random() - .5) * 10;
+    }
+    b.style.cssText += `--h:${h}px;--tx:${tx}px;--ty:${ty}px;--rot:${rot}deg;--dl:${Math.round(i * Math.min(90, 1400 / N))}ms`;
+    fan.append(b);
+  }
+  o.remove();
+  await wait(Math.min(90, 1400 / N) * N + 500);
+  const vt = vault.querySelector(".vt"); vt.textContent = `+${N} boosters !`; vt.style.color = color;
+  vault.querySelectorAll(".vs")[1].innerHTML = `Il te reste <b>${save.sealed[p.id] || 0}</b> ${p.name} · <b>${save.boosters[p.set]}</b> boosters ${SET[p.set].name} à ouvrir`;
+  const btns = vault.querySelector(".vbtns");
+  const go = document.createElement("button"); go.className = "btn"; go.textContent = "Ouvrir les boosters";
+  go.onclick = () => { closeVault(); show("open"); };
+  const back = document.createElement("button"); back.className = "btn ghost"; back.textContent = "Retour à la réserve";
+  back.onclick = closeVault;
+  btns.append(go, back);
 }
 
 /* =====================================================================
@@ -1823,11 +2071,13 @@ function updateCounter(bump = false) {
 }
 function show(v) {
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
-  ["shop", "open", "binder", "stats"].forEach(k => document.getElementById("view-" + k).hidden = k !== v);
+  ["shop", "open", "reserve", "binder", "stats"].forEach(k => document.getElementById("view-" + k).hidden = k !== v);
+  if (v !== "reserve") closeVault();
   if (v !== "binder") { selling = false; picked = {}; document.querySelector(".sellbar")?.remove(); }
   if (v === "shop") renderShop();
   if (v === "open") { if (state === "summary") resetStage(); else if (state === "pack") renderPicker(); }
   if (v === "binder") renderBinder();
+  if (v === "reserve") renderReserve();
   if (v === "stats") renderStats();
   scrollTo(0, 0);
 }
