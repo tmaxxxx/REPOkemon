@@ -330,6 +330,7 @@ section[hidden] { display: none !important; }
 /* ---------- Deck (cartes face visible) ---------- */
 #deck { position: absolute; width: var(--cw); aspect-ratio: 63/88; }
 #deck:empty { pointer-events: none; }   /* vide, il ne doit pas cacher le booster aux clics */
+#deck { touch-action: none; }            /* sur mobile, glisser la carte ne fait pas défiler la page */
 #deck::before {
   content: ''; position: absolute; inset: 0; border-radius: 4.5% / 3.2%; opacity: 0; transition: opacity .2s;
 }
@@ -340,6 +341,11 @@ section[hidden] { display: none !important; }
 .fcard .card { box-shadow: 0 20px 40px #0009; }
 .fcard.enter { transform: translateY(40%) scale(.6) !important; opacity: 0; }
 .fcard.out { transform: translate(-115vw, -8vh) rotate(-28deg) !important; opacity: 0; }
+/* dévoiler lentement : la carte suit le doigt, puis part vers le haut */
+.fcard.peeling { transition: none !important; cursor: grabbing; }
+.fcard.peeling .card { box-shadow: 0 34px 60px #000b; }
+.fcard.peeling .rlabel { opacity: 0; transition: none; }   /* l'étiquette ne passe pas sur la carte qu'on découvre */
+.fcard.out.up { transform: translate(0, -130vh) rotate(-6deg) !important; transition: transform .45s cubic-bezier(.4,0,.6,1), opacity .45s; }
 .fcard.shown.hit .card { animation: glow 1.6s ease-in-out infinite alternate; }
 @keyframes glow { from { box-shadow: 0 0 20px var(--rc), 0 0 50px var(--rc); } to { box-shadow: 0 0 40px var(--rc), 0 0 120px var(--rc); } }
 .fcard.shown.pop .card { animation: cardpop .5s cubic-bezier(.3,1.6,.5,1); }
@@ -1278,10 +1284,42 @@ function reveal(i) {
     banner(R.label + " !", R.color, priceOf(card) >= 10_00 ? card.name + " · " + fmt(priceOf(card)) : "");
   } else if (lv === 1) burst(cx, cy, [R.color, "#ffffff"], 25, 5);
   if (lv >= 4) { flash(R.color); shockwave(cx, cy, [R.color, "#ffffff", "#ffd76a"]); }
-  hint.textContent = i < current.length - 1 ? `${TAP} pour la carte suivante (${i + 1}/${current.length})` : `${TAP} pour voir ton booster`;
+  hint.textContent = i < current.length - 1 ? `${TAP} pour la carte suivante, ou fais-la glisser vers le haut pour dévoiler lentement (${i + 1}/${current.length})` : `${TAP} pour voir ton booster`;
 }
 
-deck.addEventListener("click", advance);
+deck.addEventListener("click", () => { if (peeled) { peeled = false; return; } advance(); });
+
+/* Dévoiler lentement : maintenir la carte du dessus et la faire glisser vers le haut découvre peu à peu celle de derrière.
+   Lâchée après 40 % de sa hauteur, elle s'envole ; avant, elle revient en place. Un simple clic passe toujours à la suivante. */
+let peel = null, peeled = false;
+deck.addEventListener("pointerdown", e => {
+  if (state !== "deck" || busy || e.button > 0) return;
+  const top = deck.children[idx];
+  if (!top || !top.contains(e.target)) return;
+  peel = { top, id: e.pointerId, x0: e.clientX, y0: e.clientY, h: top.getBoundingClientRect().height, on: false, p: 0 };
+  peeled = false;
+});
+addEventListener("pointermove", e => {
+  if (!peel || e.pointerId !== peel.id) return;
+  const dy = Math.min(0, e.clientY - peel.y0), dx = e.clientX - peel.x0;
+  if (!peel.on) {
+    if (dy > -8) return;   // en dessous de 8 px, c'est encore un clic
+    peel.on = peeled = true;
+    peel.top.classList.add("peeling");
+  }
+  peel.p = Math.min(1, -dy / peel.h);
+  peel.top.style.transform = `translate(${dx * .15}px, ${dy}px) rotate(${dx * .02 - peel.p * 3}deg)`;
+});
+const endPeel = e => {
+  if (!peel || e.pointerId !== peel.id) return;
+  const { top, on, p } = peel;
+  peel = null;
+  if (!on) return;
+  top.classList.remove("peeling");
+  if (p > .4) advance(true); else restack();
+};
+addEventListener("pointerup", endPeel);
+addEventListener("pointercancel", endPeel);
 addEventListener("keydown", e => {
   if (e.key === "Escape") closeModal();
   if (document.getElementById("view-open").hidden || !document.getElementById("modal").hidden) return;
@@ -1296,10 +1334,11 @@ addEventListener("keydown", e => {
   }
 });
 
-async function advance() {
+async function advance(up = false) {
   if (state !== "deck" || busy) return;
   busy = true;
   const top = deck.children[idx];
+  if (up) top.classList.add("up");   // dévoilée en glissant : elle s'envole vers le haut
   if (idx >= current.length - 1) {
     top.classList.add("out");
     await wait(350);
