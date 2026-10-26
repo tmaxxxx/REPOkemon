@@ -528,6 +528,67 @@ details.info > :not(summary) { margin-top: 10px; }
 .note a { color: var(--muted); }
 
 /* ---------- Classeur ---------- */
+/* vue « vrai classeur » : deux pages de 9 pochettes, anneaux au milieu, pages qui tournent en 3D */
+.book-wrap { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 6px auto 0; user-select: none; -webkit-user-select: none; }
+.book {
+  --pw: min(42vw, calc((100vh - 390px) * .75), 470px);
+  position: relative; display: grid; grid-template-columns: var(--pw) 38px var(--pw); padding: 18px 16px;
+  border-radius: 20px; perspective: 2600px; touch-action: pan-y;
+  background: radial-gradient(120% 90% at 50% 0%, #3a2a55 0%, #1d1430 60%, #150f22 100%);
+  box-shadow: 0 40px 90px #000c, inset 0 0 0 2px #ffffff12, inset 0 2px 0 #ffffff1c;
+}
+.book.single { --pw: min(calc(100vw - 64px), calc((100vh - 330px) * .75)); grid-template-columns: var(--pw); padding: 14px; }
+.book.single .bk-left, .book.single .rings { display: none; }
+.page-slot { position: relative; width: var(--pw); aspect-ratio: .75; }
+.bpage {
+  position: absolute; inset: 0; border-radius: 10px; overflow: hidden;
+  background: linear-gradient(180deg, #1b1826, #121019); box-shadow: inset 0 0 0 1px #ffffff10, inset 0 0 40px #0006;
+}
+.bk-left .bpage { border-radius: 10px 4px 4px 10px; } .bk-right .bpage { border-radius: 4px 10px 10px 4px; }
+.pockets { position: absolute; inset: 0; padding: calc(var(--pw) * .04); display: grid; gap: calc(var(--pw) * .04);
+  grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
+.pocket { position: relative; border-radius: 5px; background: #ffffff07; box-shadow: inset 0 0 0 1px #ffffff17; cursor: pointer; }
+.pocket.empty { cursor: default; }
+.pocket::after {   /* reflet de la pochette plastique */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  background: linear-gradient(118deg, #ffffff1f 0%, #ffffff05 28%, transparent 45%, transparent 70%, #ffffff0d 100%);
+  box-shadow: inset 0 3px 0 -1px #ffffff26;
+}
+.pocket .card { width: 100%; transition: transform .25s; }
+.pocket:hover .card { transform: translateY(-3px) scale(1.03); }
+.pocket .count, .pocket .gbadge { position: absolute; z-index: 3; font-weight: 700; font-size: 11px; padding: 1px 6px; border-radius: 7px; }
+.pocket .count { bottom: 4px; right: 4px; background: #000c; color: #fff; }
+.pocket .gbadge { top: 4px; left: 4px; background: var(--gold); color: #1d1606; }
+.pocket .miss { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 4px; padding: 6px; color: #ffffff38; font-size: 11px; line-height: 1.2; }
+.pocket .miss b { font-size: 16px; color: #ffffff2e; }
+.bcover { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 12px; padding: 10%;
+  background: radial-gradient(90% 70% at 50% 30%, #ffffff12, transparent 70%); }
+.bcover .t { font-size: calc(var(--pw) * .08); font-weight: 800; letter-spacing: -.02em; line-height: 1.05; }
+.bcover .s { color: var(--muted); font-size: 13px; }
+.bcover .big { font-size: calc(var(--pw) * .13); font-weight: 800; color: var(--gold); line-height: 1; }
+.bcover .bar { width: 70%; }
+.bcover .go { margin-top: 10px; color: var(--muted); font-size: 12px; animation: nudge 1.8s ease-in-out infinite; }
+@keyframes nudge { 50% { transform: translateX(6px); } }
+.bpage .pno { position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; font-size: 10px; color: #ffffff30; z-index: 3; pointer-events: none; }
+.bpage.blank { background: linear-gradient(180deg, #17141f, #0f0d15); }
+.rings { display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; position: relative; z-index: 6; pointer-events: none; }
+.rings::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 10px; transform: translateX(-50%); background: linear-gradient(90deg, #0008, #0002, #0008); border-radius: 4px; }
+.rings i { position: relative; width: 46px; height: 18px; border-radius: 12px; border: 4px solid transparent;
+  background: linear-gradient(#0000, #0000) padding-box, linear-gradient(180deg, #f3f3f7, #8d8fa0 45%, #e9e9ef 60%, #6f7182) border-box; box-shadow: 0 3px 6px #0009; }
+/* la page qui tourne */
+.leaf { position: absolute; top: 0; width: var(--pw); aspect-ratio: .75; transform-style: preserve-3d; z-index: 8; will-change: transform; }
+.leaf .lf { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.leaf .lb { transform: rotateY(180deg); }
+.leaf .lf::after { content: ""; position: absolute; inset: 0; border-radius: 10px; pointer-events: none; z-index: 9;
+  background: linear-gradient(90deg, #000 0%, transparent 60%); opacity: var(--shade, 0); }
+.leaf.anim { transition: transform .7s cubic-bezier(.45,.05,.3,1); }
+.bk-nav { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: #ffffff0a; color: var(--txt); font-size: 24px; cursor: pointer; flex: none; transition: background .2s, transform .2s; }
+.bk-nav:hover:not(:disabled) { background: #ffffff1c; transform: scale(1.08); }
+.bk-nav:disabled { opacity: .25; cursor: default; }
+.bk-foot { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 16px auto 30px; color: var(--muted); font-size: 13px; }
+.bk-foot input { width: min(360px, 60vw); accent-color: var(--gold); }
+@media (max-width: 760px) { .book-wrap .bk-nav { display: none; } }
+
 .binder-head { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; max-width: 1300px; margin: 0 auto 18px; }
 .prog { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; }
 .prog div { font-weight: 600; color: var(--muted); }
@@ -1770,6 +1831,154 @@ function removeCard(id, n = 1) {
   save.owned[id] -= n;
   if (save.owned[id] <= 0) delete save.owned[id];
 }
+/* ---------- Classeur en livre : 9 pochettes par page, pages qui tournent (clic, flèches, clavier, ou à la main) ---------- */
+const bookSpread = {};   // page ouverte par série
+function bookPages(list) {
+  const pages = [{ cover: true }];
+  for (let i = 0; i < list.length; i += 9) pages.push({ cards: list.slice(i, i + 9) });
+  return pages;
+}
+function bookPageEl(p, no) {
+  const el = document.createElement("div");
+  if (!p) { el.className = "bpage blank"; return el; }
+  el.className = "bpage";
+  if (p.cover) {
+    const cards = CARDS.filter(c => c.set === binderSet), have = cards.filter(c => has(c.id)).length;
+    const value = cards.reduce((a, c) => a + priceOf(c) * (save.owned[c.id] || 0), 0);
+    el.innerHTML = `<div class="bcover"><div class="s">Classeur</div><div class="t">${SET[binderSet].name}</div>
+      <div class="big">${have}/${cards.length}</div><div class="bar"><i style="width:${have / cards.length * 100}%"></i></div>
+      <div class="s">Valeur de tes cartes : <b style="color:var(--txt)">${fmt(value)}</b></div><div class="go">Tourne la page →</div></div>`;
+    return el;
+  }
+  const g = document.createElement("div"); g.className = "pockets";
+  for (let k = 0; k < 9; k++) {
+    const c = p.cards[k], pk = document.createElement("div");
+    pk.className = "pocket";
+    if (!c) pk.classList.add("empty");
+    else if (has(c.id)) {
+      const raw = save.owned[c.id] || 0, gr = gradedOf(c.id);
+      pk.appendChild(cardEl(c, { tilt: false, lazy: true }));
+      if (raw + gr.length > 1) pk.insertAdjacentHTML("beforeend", `<div class="count">×${raw + gr.length}</div>`);
+      if (gr.length) pk.insertAdjacentHTML("beforeend", `<div class="gbadge">RKG ${gr[0].g}</div>`);
+      pk.dataset.id = c.id;
+    } else {
+      pk.innerHTML = `<div class="miss"><b>${c.num.split(" ")[0]}</b>${c.name}<span style="color:${RARITY[c.rarity].color}66">${RARITY[c.rarity].sym}</span></div>`;
+      pk.dataset.id = c.id;
+    }
+    g.appendChild(pk);
+  }
+  el.appendChild(g);
+  el.insertAdjacentHTML("beforeend", `<div class="pno">${no}</div>`);
+  return el;
+}
+function renderBook(box, list) {
+  const pages = bookPages(list), single = matchMedia("(max-width: 760px)").matches, per = single ? 1 : 2;
+  const nSp = Math.ceil(pages.length / per);
+  let sp = Math.min(bookSpread[binderSet] || 0, nSp - 1);
+  box.innerHTML = `<div class="book-wrap"><button class="bk-nav" data-d="-1" title="Page précédente (←)">‹</button>
+    <div class="book${single ? " single" : ""}"><div class="page-slot bk-left"></div><div class="rings"><i></i><i></i><i></i><i></i></div><div class="page-slot bk-right"></div></div>
+    <button class="bk-nav" data-d="1" title="Page suivante (→)">›</button></div>
+    <div class="bk-foot"><span class="bk-no"></span><input type="range" min="0" max="${nSp - 1}" value="${sp}"><span>${list.length} cartes · ${pages.length - 1} pages</span></div>`;
+  const book = box.querySelector(".book"), L = box.querySelector(".bk-left"), Rt = box.querySelector(".bk-right");
+  const range = box.querySelector("input"), no = box.querySelector(".bk-no");
+  const pageAt = i => bookPageEl(pages[i], i);
+  const draw = () => {
+    bookSpread[binderSet] = sp;
+    if (single) Rt.replaceChildren(pageAt(sp));
+    else { L.replaceChildren(pageAt(2 * sp)); Rt.replaceChildren(pageAt(2 * sp + 1)); }
+    range.value = sp;
+    no.textContent = sp === 0 ? "Couverture" : single ? `Page ${sp} / ${pages.length - 1}` : `Pages ${2 * sp}–${Math.min(2 * sp + 1, pages.length - 1)}`;
+    box.querySelectorAll(".bk-nav").forEach(b => b.disabled = +b.dataset.d < 0 ? sp === 0 : sp >= nSp - 1);
+  };
+  draw();
+
+  // une feuille qui tourne : recto = page qu'on quitte, verso = page qu'on découvre ; dessous = la page d'après
+  let leaf = null, busyFlip = false;
+  const makeLeaf = d => {
+    const pw = Rt.offsetWidth, onRight = single || d > 0;
+    leaf = document.createElement("div"); leaf.className = "leaf";
+    leaf.style.left = (onRight ? Rt.offsetLeft : L.offsetLeft) + "px";
+    leaf.style.top = Rt.offsetTop + "px";
+    leaf.style.transformOrigin = onRight ? "left center" : "right center";
+    const f = document.createElement("div"), b = document.createElement("div");
+    f.className = "lf"; b.className = "lf lb";
+    if (single) {   // une page à la fois : la feuille vient de la droite et se rabat à gauche
+      if (d > 0) { f.append(pageAt(sp)); b.append(bookPageEl(null)); Rt.replaceChildren(pageAt(sp + 1)); }
+      else { f.append(pageAt(sp - 1)); b.append(bookPageEl(null)); }
+    } else if (d > 0) { f.append(pageAt(2 * sp + 1)); b.append(pageAt(2 * sp + 2)); Rt.replaceChildren(pageAt(2 * sp + 3)); }
+    else { f.append(pageAt(2 * sp)); b.append(pageAt(2 * sp - 1)); L.replaceChildren(pageAt(2 * sp - 2)); }
+    leaf.append(f, b); book.appendChild(leaf);
+    leaf.d = d; leaf.pw = pw;
+    // en simple page, « précédent » part de la position tournée (-180°) et revient à plat
+    leaf.from = single && d < 0 ? -180 : 0;
+    leaf.to = d > 0 ? -180 : single ? 0 : 180;
+    setAngle(leaf.from);
+  };
+  const setAngle = a => {
+    leaf.angle = a;
+    leaf.style.transform = `rotateY(${a}deg)`;
+    leaf.style.setProperty("--shade", (Math.sin(Math.abs(a) * Math.PI / 180) * .55).toFixed(3));
+  };
+  const finish = async done => {
+    leaf.classList.add("anim"); busyFlip = true;
+    setAngle(done ? leaf.to : leaf.from);
+    await wait(720);
+    if (done) sp += leaf.d;
+    leaf.remove(); leaf = null; busyFlip = false; draw();
+  };
+  const flip = d => {
+    if (busyFlip || leaf) return;
+    if (d > 0 ? sp >= nSp - 1 : sp <= 0) return;
+    makeLeaf(d); leaf.getBoundingClientRect();
+    finish(true);
+  };
+  box.querySelectorAll(".bk-nav").forEach(b => b.onclick = () => flip(+b.dataset.d));
+  range.oninput = () => { sp = +range.value; draw(); };
+  bookFlip = flip;
+
+  // tourner la page à la main : attraper la page et glisser ; un clic sur une carte ouvre sa fiche
+  let drag = null, dragged = false;
+  book.addEventListener("pointerdown", e => {
+    if (busyFlip || leaf || e.button > 0) return;
+    drag = { x0: e.clientX, y0: e.clientY, id: e.pointerId, on: false };
+    dragged = false;
+  });
+  book.addEventListener("pointermove", e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x0;
+    if (!drag.on) {
+      if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(e.clientY - drag.y0)) return;
+      const d = dx < 0 ? 1 : -1;
+      if (d > 0 ? sp >= nSp - 1 : sp <= 0) { drag = null; return; }
+      drag.on = dragged = true; book.setPointerCapture(e.pointerId);
+      makeLeaf(d);
+    }
+    const k = Math.max(0, Math.min(1, Math.abs(dx) / (leaf.pw * (single ? 1 : 1.6))));
+    setAngle(leaf.from + (leaf.to - leaf.from) * k);
+    leaf.k = k;
+  });
+  const end = e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const was = drag.on; drag = null;
+    if (was && leaf) finish(leaf.k > .3);
+  };
+  book.addEventListener("pointerup", end);
+  book.addEventListener("pointercancel", end);
+  book.addEventListener("click", e => {
+    if (dragged) { dragged = false; return; }
+    const pk = e.target.closest(".pocket");
+    if (pk && pk.dataset.id) { if (has(pk.dataset.id)) openModal(BY_ID[pk.dataset.id]); return; }
+    // clic dans la marge d'une page : on la tourne
+    if (e.target.closest(".bk-right")) flip(1); else if (e.target.closest(".bk-left")) flip(-1);
+  });
+}
+let bookFlip = null;
+addEventListener("keydown", e => {
+  if (document.getElementById("view-binder").hidden || !bookFlip || !document.querySelector(".book") || !document.getElementById("modal").hidden) return;
+  if (e.key === "ArrowRight") bookFlip(1);
+  if (e.key === "ArrowLeft") bookFlip(-1);
+});
+
 function renderBinder() {
   const sbox = document.getElementById("binderSets");
   sbox.innerHTML = SETS.map(s => {
@@ -1820,6 +2029,10 @@ function renderBinder() {
   const sm = document.createElement("button"); sm.className = "btn small" + (selling ? "" : " ghost");
   sm.textContent = selling ? "✕ Quitter le mode vente" : "☑ Choisir les cartes à vendre";
   sm.onclick = () => { selling = !selling; picked = {}; renderBinder(); };
+  const bm = document.createElement("button"); bm.className = "btn small ghost";
+  bm.textContent = (save.binderMode || "book") === "book" ? "▦ Vue grille" : "📖 Vue classeur";
+  bm.onclick = () => { save.binderMode = (save.binderMode || "book") === "book" ? "grid" : "book"; persist(); renderBinder(); };
+  if (!selling) act.prepend(bm);
   act.append(sm, sd, rf);
   document.getElementById("view-binder").classList.toggle("selling", selling);
 
@@ -1836,6 +2049,8 @@ function renderBinder() {
   list = filter === "value" ? list.sort((a, b) => priceOf(b) - priceOf(a)) : list.sort((a, b) => a.order - b.order);
   if (selling) sellBar(list.filter(c => save.owned[c.id] > 0));
   if (!list.length) { box.innerHTML = `<div class="empty">Rien ici pour l'instant.</div>`; return; }
+  bookFlip = null;
+  if (!selling && (save.binderMode || "book") === "book") return renderBook(box, list);   // le mode vente reste en grille
   const sec = document.createElement("div"); sec.className = "bsec";
   sec.innerHTML = `<div class="grid"></div>`;
   const grid = sec.querySelector(".grid");
