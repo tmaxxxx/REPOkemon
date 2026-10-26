@@ -39,16 +39,19 @@ la version en ligne et la version téléchargée ont chacune leur propre sauvega
 
 ## Les séries
 
-Trois séries sont ouvertes dès le départ. Les autres se débloquent en ouvrant des boosters (toutes séries confondues).
+Quatre séries sont ouvertes dès le départ. Les autres se débloquent en ouvrant des boosters (toutes séries confondues).
 
 | Série | Année | Débloquée à | Produits en boutique |
 |---|---|---|---|
 | 30e Anniversaire | 2026 | dès le départ | booster, bundle, ETB |
 | Écarlate et Violet — 151 | 2023 | dès le départ | booster, bundle, ETB |
 | Évolutions Prismatiques | 2025 | dès le départ | booster, bundle, ETB |
+| Rivalités Destinées (Team Rocket) | 2025 | dès le départ | booster, bundle, ETB, display |
 | Évolution Céleste | 2021 | 100 boosters | booster, ETB, display |
 | Primo-Choc (XY) | 2015 | 250 boosters | booster, display |
 | Explosion Plasma (Noir et Blanc) | 2013 | 500 boosters | booster, ETB, display |
+| Foudre Noire | 2025 | 500 boosters | booster, bundle, ETB |
+| HeartGold SoulSilver | 2010 | 500 boosters | booster |
 | Fossile | 1999 | 1 000 boosters | booster, display |
 | Set de Base | 1999 | 1 500 boosters | booster, display |
 
@@ -97,7 +100,7 @@ Trois séries sont ouvertes dès le départ. Les autres se débloquent en ouvran
 - **Exception** : les produits 30e Anniversaire coûtent 36 % de plus que leur cote. Les cartes de cette série
   toute récente sont surcotées : au vrai prix, un booster rapporterait 123 % de ce qu'il coûte, donc de l'argent à l'infini.
 - **Cote des cartes** : API TCGdex (TCGplayer en dollars, ou Cardmarket converti en dollars).
-- **Taux de drop** : taux réels relevés par la communauté. TCGplayer pour 151, Évolution Céleste et 30e Anniversaire,
+- **Taux de drop** : taux réels relevés par la communauté. TCGplayer pour 151, Évolution Céleste, 30e Anniversaire, Foudre Noire et Rivalités Destinées,
   taux publiés au lancement pour Évolutions Prismatiques, ThePriceDex pour Primo-Choc et Explosion Plasma,
   une holo pour 3 boosters pour les séries de 1999.
 

@@ -2,7 +2,7 @@
 import json, pathlib, urllib.request, urllib.error, concurrent.futures as cf
 ROOT = pathlib.Path(__file__).parent.parent
 FOLDER = {"base1": "base", "base3": "fossile", "sv03.5": "151", "swsh7": "evs", "sv08.5": "pre", "30th": "30th",
-          "xy5": "primo", "bw10": "plasma", "sv10.5b": "blk", "hgss1": "hgss"}
+          "xy5": "primo", "bw10": "plasma", "sv10.5b": "blk", "hgss1": "hgss", "sv10": "dr"}
 raw = json.loads((ROOT / "outils/raw.json").read_text())
 jobs = []
 for s, folder in FOLDER.items():

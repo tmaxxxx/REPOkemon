@@ -627,7 +627,8 @@ const RARITY = {
    Primo-Choc et Explosion Plasma (ThePriceDex, données communautaires),
    Mew RGB : ~1 booster sur 3 200 pour l'un des trois (estimation communautaire, aucun chiffre officiel),
    Foudre Noire (TCGplayer ; Rare Noir & Blanc : ~2 sur 1 000 boosters, comptage Reddit),
-   HeartGold SoulSilver (Card Codex : holo 1 carte sur 59 boosters × 14, Prime 1/6, LÉGENDE 1/12).
+   HeartGold SoulSilver (Card Codex : holo 1 carte sur 59 boosters × 14, Prime 1/6, LÉGENDE 1/12),
+   Rivalités Destinées (TCGplayer, ~8 000 boosters ouverts).
    ===================================================================== */
 const SETS = [
   { id: "30th", unlock: 0, name: "30e Anniversaire", year: 2026, color: "#ffd76a", booster: "696613",
@@ -642,6 +643,10 @@ const SETS = [
     desc: "Le set Évoli le plus chassé de l'ère Écarlate et Violet. 32 SIR, dont Noctali-ex.",
     order: ["C", "C", "C", "C", "U", "U", "U", "REV", "REV", "HIT"],
     hit: [["DR", 1/6], ["UR", 1/13], ["ACE", 1/21], ["SIR", 1/45], ["GR", 1/180]], fallback: "R" },
+  { id: "dr", unlock: 0, name: "Rivalités Destinées", year: 2025, color: "#e0343c", booster: "624683",
+    desc: "La Team Rocket est de retour : les Pokémon de Giovanni, Ariane et Lance. La chasse : Mewtwo-ex de la Team Rocket Illustration Spéciale Rare.",
+    order: ["C", "C", "C", "C", "U", "U", "U", "REV", "REV", "HIT"],
+    hit: [["DR", 1/5], ["IR", 1/12], ["UR", 1/16], ["SIR", 1/94], ["GR", 1/149]], fallback: "R" },
   { id: "evs", unlock: 100, name: "Évolution Céleste", year: 2021, color: "#5ec8ff", booster: "244337",
     desc: "Le meilleur set moderne selon les collectionneurs : les Alternatives, et le mythique « Moonbreon » (Noctali VMAX 215).",
     order: ["C", "C", "C", "C", "C", "U", "U", "U", "REV", "HIT"],

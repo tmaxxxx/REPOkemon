@@ -79,6 +79,12 @@ for c in raw["hgss1"]:
     n = int(c["localId"])
     add(f"hgss-{n}", "hgss", n, f"{n}/123", c["name"], HGSS[c["rarity"]], usd(c), f"cartes/hgss/{c['localId']}.webp", c["id"])
 
+# --- Rivalités Destinées (Écarlate et Violet, 2025 : la Team Rocket) ----------
+# pas de cote TCGplayer dans TCGdex pour cette série : cote Cardmarket convertie en dollars (comme le bouton d'actualisation)
+for c in raw["sv10"]:
+    n = int(c["localId"])
+    add(f"dr-{n}", "dr", n, f"{c['localId']}/182", c["name"], SV[c["rarity"]], usd(c), f"cartes/dr/{c['localId']}.webp", c["id"])
+
 # --- 30e Anniversaire (images déjà dans cartes/) -----------------------------
 R30 = {"Commune": "C", "Rare": "R", "Double rare": "DR", "Pikachu Rare": "PR", "Illustration rare": "IR",
        "Illustration spéciale rare": "SIR", "Futuristic Rare": "FR"}
@@ -131,6 +137,11 @@ PRODUCTS = [
     ("blk",     630431, "bundle",   6,     93.60),
     ("blk",     630686, "etb",      9,    161.76),
     ("hgss",     98530, "booster",  1,    466.66),
+    # cotes TCGplayer (market price) relevées le 26/10/2026 via tcgcsv.com
+    ("dr",      624683, "booster",  1,      8.59),
+    ("dr",      625670, "bundle",   6,     59.06),
+    ("dr",      624676, "etb",      9,    108.77),
+    ("dr",      624679, "display",  36,   388.62),
 ]
 out = "/* Généré par outils/build_data.py — ne pas modifier à la main */\n"
 out += f"const PRICE_DATE = {json.dumps(datetime.date.today().isoformat())};\n"
