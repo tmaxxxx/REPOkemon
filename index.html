@@ -514,7 +514,14 @@ html.local .pack-glare, html.local .oglare, html.local .pack-top::after, html.lo
 .prod .psub { color: var(--muted); font-weight: 500; font-size: 13px; }
 .prod .pprice { font-weight: 700; letter-spacing: -.02em; font-size: 21px; color: var(--txt); margin-top: 4px; font-variant-numeric: tabular-nums; }
 .prod .pprice small { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0; display: block; }
-.prod .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.prod .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.qty { display: flex; align-items: center; border: 1px solid #ffffff1f; border-radius: 10px; overflow: hidden; height: 32px; }
+.qty button { background: none; border: 0; color: var(--txt); font: inherit; font-weight: 600; padding: 0 10px; height: 100%; cursor: pointer; }
+.qty button:hover { background: #ffffff12; }
+.qty [data-max] { font-size: 12px; color: var(--muted); border-left: 1px solid #ffffff1f; }
+.qty input { width: 52px; height: 100%; background: none; border: 0; color: var(--txt); font: inherit; font-weight: 700; text-align: center; -moz-appearance: textfield; }
+.qty input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.qty input:focus { outline: none; background: #ffffff0d; }
 .prod .owned { font-size: 13px; color: var(--gold); font-weight: 700; min-height: 1.2em; }
 .shop h3 { font-weight: 600; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 44px 0 14px; }
 .inv { display: grid; gap: 10px; }
@@ -1572,6 +1579,7 @@ function fastSummary() {
    BOUTIQUE : acheter, ouvrir les coffrets, revendre le scellé
    ===================================================================== */
 let shopSet = "30th";
+const shopQty = {};   // quantité choisie par produit (gardée tant que la page est ouverte)
 function renderShop() {
   const box = document.getElementById("view-shop"), s = SET[shopSet];
   box.innerHTML = `<div class="shop">
@@ -1611,21 +1619,26 @@ function renderShop() {
       <div class="owned">${have ? "En stock : " + have : ""}</div>
       <div class="row"></div>`;
     const row = d.querySelector(".row");
-    const qty = p.kind === "booster" ? [1, 10] : [1];
-    if (!isUnlocked(p.set)) qty.length = 1;
-    qty.forEach(q => {
-      const b = document.createElement("button"); b.className = "btn small" + (q > 1 ? " ghost" : "");
-      b.textContent = q > 1 ? `×${q}` : "Acheter";
-      if (!isUnlocked(p.set)) { b.textContent = "🔒 Verrouillé"; b.className = "btn small ghost"; b.disabled = true; }
-      b.onclick = () => {
-        if (!pay(p.price * q)) return nope(b, `Pas assez d'argent : il te faut ${fmt(p.price * q)}`);
-        if (p.kind === "booster") save.boosters[p.set] = (save.boosters[p.set] || 0) + q;
-        else save.sealed[p.id] = (save.sealed[p.id] || 0) + q;
-        persist(); updateCounter(true); renderShop();
-        toast(`${q > 1 ? q + " × " : ""}${p.name} ${SET[p.set].name} acheté${q > 1 ? "s" : ""} (−${fmt(p.price * q)})`);
-      };
-      row.appendChild(b);
-    });
+    if (!isUnlocked(p.set)) { row.innerHTML = `<button class="btn small ghost" disabled>🔒 Verrouillé</button>`; grid.appendChild(d); continue; }
+    // quantité au choix : on tape le nombre (ou − / + / Max) puis un seul clic sur Acheter
+    row.innerHTML = `<div class="qty"><button data-d="-1">−</button><input type="number" min="1" inputmode="numeric"><button data-d="1">+</button><button data-max>Max</button></div>
+      <button class="btn small buy"></button>`;
+    const inp = row.querySelector("input"), b = row.querySelector(".buy");
+    const q = () => Math.max(1, Math.floor(+inp.value) || 1);
+    const label = () => { b.textContent = `Acheter ×${q().toLocaleString("fr-FR")} · ${fmt(p.price * q())}`; shopQty[p.id] = q(); };
+    inp.value = shopQty[p.id] || 1; label();
+    inp.oninput = label;
+    inp.onkeydown = e => { if (e.key === "Enter") b.click(); };
+    row.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { inp.value = Math.max(1, q() + +x.dataset.d); label(); });
+    row.querySelector("[data-max]").onclick = () => { inp.value = Math.max(1, Math.floor(save.money / p.price)); label(); };
+    b.onclick = () => {
+      const n = q();
+      if (!pay(p.price * n)) return nope(b, `Pas assez d'argent : il te faut ${fmt(p.price * n)}`);
+      if (p.kind === "booster") save.boosters[p.set] = (save.boosters[p.set] || 0) + n;
+      else save.sealed[p.id] = (save.sealed[p.id] || 0) + n;
+      persist(); updateCounter(true); renderShop();
+      toast(`${n > 1 ? n.toLocaleString("fr-FR") + " × " : ""}${p.name} ${SET[p.set].name} acheté${n > 1 ? "s" : ""} (−${fmt(p.price * n)})`);
+    };
     grid.appendChild(d);
   }
   renderCatalog();
