@@ -756,6 +756,7 @@ details.info > :not(summary) { margin-top: 10px; }
     <div class="hint" id="hint"></div>
     <div class="controls" id="openControls">
       <button class="btn ghost" id="btnFast">⚡ Ouvrir ×10 (rapide)</button>
+      <button class="btn ghost" id="btnAll">📦 Tout ouvrir</button>
     </div>
   </section>
 
@@ -1164,7 +1165,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
    ===================================================================== */
 const pack = document.getElementById("pack"), deck = document.getElementById("deck"),
       summary = document.getElementById("summary"), hint = document.getElementById("hint"),
-      btnFast = document.getElementById("btnFast"), picker = document.getElementById("picker"),
+      btnFast = document.getElementById("btnFast"), btnAll = document.getElementById("btnAll"), picker = document.getElementById("picker"),
       controls = document.getElementById("openControls");
 let state = "pack";          // pack -> opening -> deck -> summary
 let current = [], idx = 0, busy = false, newFlags = [];
@@ -1241,6 +1242,8 @@ function renderPicker() {
     btnFast.disabled = left() < 2;
     controls.hidden = !has;
     btnFast.textContent = `⚡ Ouvrir ×${Math.min(10, Math.max(2, left()))} d'un coup · ${fmt(FAST_FEE)}${TOUCH ? "" : " · touche O"}`;
+    btnAll.hidden = left() <= 10;
+    btnAll.textContent = `📦 Tout ouvrir (${left().toLocaleString("fr-FR")}) · ${fmt(allFee())}`;
   }
 }
 
@@ -1471,7 +1474,7 @@ function showSummary(cards = current, flags = newFlags, title = "Ton booster", n
     </div>`;
   const row = summary.querySelector(".sumrow");
   cards.forEach((c, i) => {
-    const s = document.createElement("div"); s.className = "slot"; s.style.animationDelay = (i * 0.05) + "s";
+    const s = document.createElement("div"); s.className = "slot"; s.style.animationDelay = (Math.min(i, 40) * 0.05) + "s";
     const el = cardEl(c, { price: true }); if (level(c) >= 2) el.style.boxShadow = `0 0 24px ${RARITY[c.rarity].color}`;
     s.appendChild(el);
     if (flags[i]) { const t = document.createElement("div"); t.className = "tag"; t.textContent = "NEW"; s.appendChild(t); }
@@ -1502,11 +1505,15 @@ function resetStage() {
 /* ouverture rapide : jusqu'à 10 boosters d'un coup, on n'affiche que les meilleures cartes */
 /* ouverture ×10 : tous les boosters sont ouverts d'un coup, puis on fait défiler UNIQUEMENT les hits
    (du moins cher au plus cher : le meilleur arrive en dernier), et le récap compte toutes les cartes */
-let fast = null;   // { all, n, price, hits, flags } pendant une ouverture ×10
-btnFast.onclick = async () => {
+let fast = null;   // { all, n, price, fee, hits, flags } pendant une ouverture ×10 ou « tout ouvrir »
+const allFee = () => FAST_FEE * Math.ceil(left() / 10);   // tout ouvrir = les frais du ×10 par paquet de 10
+btnFast.onclick = () => fastOpen(Math.min(10, left()), FAST_FEE, btnFast);
+/* tout ouvrir : tous les boosters de la sélection d'un coup, on saute le défilé et on montre directement tous les hits */
+btnAll.onclick = () => fastOpen(left(), allFee(), btnAll);
+async function fastOpen(n, fee, btn) {
   if (state !== "pack" || left() < 2) return;
-  if (!pay(FAST_FEE)) return nope(btnFast, `L'ouverture rapide coûte ${fmt(FAST_FEE)} : ouvre tes boosters à la main !`);
-  const n = Math.min(10, left()), got = [], flags = [], all = [];
+  if (!pay(fee)) return nope(btn, `Ça coûte ${fmt(fee)} de frais : ouvre tes boosters à la main !`);
+  const swipe = n <= 10, got = [], flags = [], all = [];
   const setId = curSet(), price = packPrice();
   take(n);
   for (let p = 0; p < n; p++) {
@@ -1517,8 +1524,8 @@ btnFast.onclick = async () => {
   }
   persist(); updateCounter();
   const order = got.map((c, i) => [c, flags[i]]).sort((a, b) => priceOf(a[0]) - priceOf(b[0]));
-  fast = { all, n, price, hits: order.map(o => o[0]), flags: order.map(o => o[1]) };
-  state = "opening"; renderPicker(); btnFast.disabled = true; controls.hidden = true; hint.textContent = "";
+  fast = { all, n, price, fee, hits: order.map(o => o[0]), flags: order.map(o => o[1]) };
+  state = "opening"; renderPicker(); btnFast.disabled = true; btnAll.hidden = true; controls.hidden = true; hint.textContent = "";
   // même ouverture qu'un booster normal
   pack.classList.add("shake");
   await wait(450);
@@ -1529,6 +1536,11 @@ btnFast.onclick = async () => {
   pack.classList.add("opening");
   await wait(500);
   if (!fast.hits.length) { pack.classList.add("gone"); return fastSummary(); }
+  if (!swipe) {
+    banner(`${fast.hits.length.toLocaleString("fr-FR")} hit${fast.hits.length > 1 ? "s" : ""} !`, "#f0c674", `dans tes ${n.toLocaleString("fr-FR")} boosters`);
+    pack.classList.add("gone");
+    return fastSummary();
+  }
   current = fast.hits; newFlags = fast.flags; idx = 0;
   banner(`${fast.hits.length} hit${fast.hits.length > 1 ? "s" : ""} !`, "#f0c674", `dans tes ${n} boosters`);
   buildDeck();
@@ -1536,13 +1548,13 @@ btnFast.onclick = async () => {
   pack.classList.add("gone");
   reveal(0);
   state = "deck";
-};
+}
 /* récap de l'ouverture ×10 : les hits (du plus cher au moins cher) + la valeur de TOUTES les cartes */
 function fastSummary() {
-  const { all, n, price } = fast, hits = [...fast.hits].reverse(), flags = [...fast.flags].reverse(), rest = all.length - hits.length;
-  showSummary(hits, flags, hits.length ? `${n} boosters · ${hits.length} hit${hits.length > 1 ? "s" : ""}` : `${n} boosters… aucun hit 😭`, n);
-  const value = all.reduce((a, c) => a + priceOf(c), 0), paid = price * n + FAST_FEE, diff = value - paid;
-  summary.querySelector(".sumval").innerHTML = `Valeur des ${all.length} cartes : <b>${fmt(value)}</b> · ${price ? "prix des boosters + frais ×10" : "frais ×10 (boosters gratuits)"} : <b>${fmt(paid)}</b>
+  const { all, n, price, fee } = fast, hits = [...fast.hits].reverse(), flags = [...fast.flags].reverse(), rest = all.length - hits.length;
+  showSummary(hits, flags, hits.length ? `${n.toLocaleString("fr-FR")} boosters · ${hits.length.toLocaleString("fr-FR")} hit${hits.length > 1 ? "s" : ""}` : `${n} boosters… aucun hit 😭`, n);
+  const value = all.reduce((a, c) => a + priceOf(c), 0), paid = price * n + fee, diff = value - paid;
+  summary.querySelector(".sumval").innerHTML = `Valeur des ${all.length.toLocaleString("fr-FR")} cartes : <b>${fmt(value)}</b> · ${price ? "prix des boosters + frais" : "frais (boosters gratuits)"} : <b>${fmt(paid)}</b>
     → <span class="${diff >= 0 ? "up" : "down"}">${diff >= 0 ? "+" : "−"}${fmt(Math.abs(diff))}</span>
     <br><span style="font-size:13px">(+ ${rest} cartes à moins de 5 $, rangées dans le classeur)</span>`;
   const sellBtn = summary.querySelector("#sellAll");
