@@ -1250,7 +1250,7 @@ function renderPicker() {
     controls.hidden = !has;
     btnFast.textContent = `⚡ Ouvrir ×${Math.min(10, Math.max(2, left()))} d'un coup · ${fmt(FAST_FEE)}${TOUCH ? "" : " · touche O"}`;
     btnAll.hidden = left() <= 10;
-    btnAll.textContent = `📦 Tout ouvrir (${left().toLocaleString("fr-FR")}) · ${fmt(allFee())}`;
+    btnAll.textContent = `📦 Tout ouvrir (${left().toLocaleString("fr-FR")}) · gratuit`;
   }
 }
 
@@ -1513,7 +1513,7 @@ function resetStage() {
 /* ouverture ×10 : tous les boosters sont ouverts d'un coup, puis on fait défiler UNIQUEMENT les hits
    (du moins cher au plus cher : le meilleur arrive en dernier), et le récap compte toutes les cartes */
 let fast = null;   // { all, n, price, fee, hits, flags } pendant une ouverture ×10 ou « tout ouvrir »
-const allFee = () => FAST_FEE * Math.ceil(left() / 10);   // tout ouvrir = les frais du ×10 par paquet de 10
+const allFee = () => 0;   // tout ouvrir est gratuit (demande du joueur)
 btnFast.onclick = () => fastOpen(Math.min(10, left()), FAST_FEE, btnFast);
 /* tout ouvrir : tous les boosters de la sélection d'un coup, on saute le défilé et on montre directement tous les hits */
 btnAll.onclick = () => fastOpen(left(), allFee(), btnAll);
@@ -1561,7 +1561,7 @@ function fastSummary() {
   const { all, n, price, fee } = fast, hits = [...fast.hits].reverse(), flags = [...fast.flags].reverse(), rest = all.length - hits.length;
   showSummary(hits, flags, hits.length ? `${n.toLocaleString("fr-FR")} boosters · ${hits.length.toLocaleString("fr-FR")} hit${hits.length > 1 ? "s" : ""}` : `${n} boosters… aucun hit 😭`, n);
   const value = all.reduce((a, c) => a + priceOf(c), 0), paid = price * n + fee, diff = value - paid;
-  summary.querySelector(".sumval").innerHTML = `Valeur des ${all.length.toLocaleString("fr-FR")} cartes : <b>${fmt(value)}</b> · ${price ? "prix des boosters + frais" : "frais (boosters gratuits)"} : <b>${fmt(paid)}</b>
+  summary.querySelector(".sumval").innerHTML = `Valeur des ${all.length.toLocaleString("fr-FR")} cartes : <b>${fmt(value)}</b> · ${price ? (fee ? "prix des boosters + frais" : "prix des boosters") : fee ? "frais (boosters gratuits)" : "boosters gratuits"} : <b>${fmt(paid)}</b>
     → <span class="${diff >= 0 ? "up" : "down"}">${diff >= 0 ? "+" : "−"}${fmt(Math.abs(diff))}</span>
     <br><span style="font-size:13px">(+ ${rest} cartes à moins de 5 $, rangées dans le classeur)</span>`;
   const sellBtn = summary.querySelector("#sellAll");
