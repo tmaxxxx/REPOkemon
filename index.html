@@ -268,7 +268,7 @@ html.local .pack-glare, html.local .oglare, html.local .pack-top::after, html.lo
 .vt { font-weight: 800; font-size: 24px; letter-spacing: -.02em; }
 .vs { color: var(--muted); font-weight: 600; font-size: 14px; }
 .vs b { color: var(--txt); }
-.vbtns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; min-height: 42px; }
+.vbtns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; min-height: 42px; }
 .vhint { color: var(--muted); font-size: 12.5px; min-height: 16px; }
 /* les boosters qui sortent du produit ouvert */
 .vfan { position: absolute; inset: 0; pointer-events: none; }
@@ -1578,6 +1578,18 @@ function fastSummary() {
 /* =====================================================================
    BOUTIQUE : acheter, ouvrir les coffrets, revendre le scellé
    ===================================================================== */
+/* sélecteur de quantité (− champ + Max) : max() = la quantité du bouton Max, onChange(n) à chaque changement */
+function qtyBox(init, max, onChange, maxLabel = "Max") {
+  const el = document.createElement("div"); el.className = "qty";
+  el.innerHTML = `<button data-d="-1">−</button><input type="number" min="1" inputmode="numeric"><button data-d="1">+</button><button data-max>${maxLabel}</button>`;
+  const inp = el.querySelector("input");
+  const get = () => Math.max(1, Math.floor(+inp.value) || 1);
+  const set = n => { inp.value = Math.max(1, n); onChange(get()); };
+  inp.value = init; inp.oninput = () => onChange(get());
+  el.querySelectorAll("[data-d]").forEach(x => x.onclick = () => set(get() + +x.dataset.d));
+  el.querySelector("[data-max]").onclick = () => set(max());
+  return { el, inp, get };
+}
 let shopSet = "30th";
 const shopQty = {};   // quantité choisie par produit (gardée tant que la page est ouverte)
 function renderShop() {
@@ -1621,16 +1633,12 @@ function renderShop() {
     const row = d.querySelector(".row");
     if (!isUnlocked(p.set)) { row.innerHTML = `<button class="btn small ghost" disabled>🔒 Verrouillé</button>`; grid.appendChild(d); continue; }
     // quantité au choix : on tape le nombre (ou − / + / Max) puis un seul clic sur Acheter
-    row.innerHTML = `<div class="qty"><button data-d="-1">−</button><input type="number" min="1" inputmode="numeric"><button data-d="1">+</button><button data-max>Max</button></div>
-      <button class="btn small buy"></button>`;
-    const inp = row.querySelector("input"), b = row.querySelector(".buy");
-    const q = () => Math.max(1, Math.floor(+inp.value) || 1);
-    const label = () => { b.textContent = `Acheter ×${q().toLocaleString("fr-FR")} · ${fmt(p.price * q())}`; shopQty[p.id] = q(); };
-    inp.value = shopQty[p.id] || 1; label();
-    inp.oninput = label;
+    const b = document.createElement("button"); b.className = "btn small buy";
+    const label = n => { b.textContent = `Acheter ×${n.toLocaleString("fr-FR")} · ${fmt(p.price * n)}`; shopQty[p.id] = n; };
+    const { el, inp, get: q } = qtyBox(shopQty[p.id] || 1, () => Math.floor(save.money / p.price), label);
+    label(q());
     inp.onkeydown = e => { if (e.key === "Enter") b.click(); };
-    row.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { inp.value = Math.max(1, q() + +x.dataset.d); label(); });
-    row.querySelector("[data-max]").onclick = () => { inp.value = Math.max(1, Math.floor(save.money / p.price)); label(); };
+    row.append(el, b);
     b.onclick = () => {
       const n = q();
       if (!pay(p.price * n)) return nope(b, `Pas assez d'argent : il te faut ${fmt(p.price * n)}`);
@@ -1827,26 +1835,32 @@ function inspect(r) {
   spinnable(o);
   const btns = vault.querySelector(".vbtns");
   const open = document.createElement("button"); open.className = "btn";
-  open.textContent = booster ? "Aller l'ouvrir" : `Ouvrir (${p.packs} boosters)`;
+  // combien on en ouvre / revend d'un coup
+  const label = k => {
+    open.textContent = booster ? "Aller l'ouvrir" : k > 1 ? `Ouvrir ×${k} (+${(k * p.packs).toLocaleString("fr-FR")} boosters)` : `Ouvrir (${p.packs} boosters)`;
+    sell.textContent = `Revendre ${k} · +${fmt(sellPrice(p.price) * k)}`;
+  };
+  const qb = qtyBox(1, () => n, k => { if (k > n) qb.inp.value = k = n; label(k); }, "Tout");
   open.onclick = () => {
     if (booster) { save.sel = p.set; persist(); closeVault(); return show("open"); }
-    openSealed(p, o);
+    openSealed(p, o, Math.min(qb.get(), n));
   };
   const sell = document.createElement("button"); sell.className = "btn green";
-  sell.textContent = `Revendre 1 · +${fmt(sellPrice(p.price))}`;
   sell.onclick = () => {
-    if (booster) save.boosters[p.set]--; else save.sealed[p.id]--;
-    gain(sellPrice(p.price)); persist(); updateCounter(true);
-    toast(`${p.name} revendu : +${fmt(sellPrice(p.price))}`);
+    const k = Math.min(qb.get(), n);
+    if (booster) save.boosters[p.set] -= k; else save.sealed[p.id] -= k;
+    gain(sellPrice(p.price) * k); persist(); updateCounter(true);
+    toast(`${k > 1 ? k + " × " : ""}${p.name} revendu${k > 1 ? "s" : ""} : +${fmt(sellPrice(p.price) * k)}`);
     renderReserve(); inspect(r);
   };
-  btns.append(open, sell);
+  label(1);
+  btns.append(...(n > 1 ? [qb.el] : []), open, sell);
 }
 
 /* ouverture d'un produit scellé : le couvercle s'envole, les vrais boosters de la série sortent en éventail */
-async function openSealed(p, o) {
-  if (!(save.sealed[p.id] > 0)) return;
-  save.sealed[p.id]--; save.boosters[p.set] = (save.boosters[p.set] || 0) + p.packs; save.sel = p.set;
+async function openSealed(p, o, k = 1) {
+  if (!(save.sealed[p.id] >= k)) return;
+  save.sealed[p.id] -= k; save.boosters[p.set] = (save.boosters[p.set] || 0) + p.packs * k; save.sel = p.set;
   persist(); updateCounter(); renderReserve();
   vault.querySelector(".vbtns").innerHTML = ""; vault.querySelector(".vhint").textContent = "";
   o.classList.add("still"); await wait(450);
@@ -1858,7 +1872,7 @@ async function openSealed(p, o) {
 
   const stage = vault.querySelector(".vstage"), fan = document.createElement("div"); fan.className = "vfan";
   stage.append(fan);
-  const N = p.packs, W = stage.clientWidth, H = stage.clientHeight, bp = boosterOf(p.set);
+  const got = p.packs * k, N = Math.min(got, 45), W = stage.clientWidth, H = stage.clientHeight, bp = boosterOf(p.set);
   for (let i = 0; i < N; i++) {
     const b = obj3d(bp); tiltable(b);
     let h, tx, ty, rot;
@@ -1874,7 +1888,7 @@ async function openSealed(p, o) {
   }
   o.remove();
   await wait(Math.min(90, 1400 / N) * N + 500);
-  const vt = vault.querySelector(".vt"); vt.textContent = `+${N} boosters !`; vt.style.color = color;
+  const vt = vault.querySelector(".vt"); vt.textContent = `+${got.toLocaleString("fr-FR")} boosters !`; vt.style.color = color;
   vault.querySelectorAll(".vs")[1].innerHTML = `Il te reste <b>${save.sealed[p.id] || 0}</b> ${p.name} · <b>${save.boosters[p.set]}</b> boosters ${SET[p.set].name} à ouvrir`;
   const btns = vault.querySelector(".vbtns");
   const go = document.createElement("button"); go.className = "btn"; go.textContent = "Ouvrir les boosters";
