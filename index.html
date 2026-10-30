@@ -226,6 +226,12 @@ section[hidden] { display: none !important; }
   -webkit-mask: var(--img) center / 100% 100% no-repeat; mask: var(--img) center / 100% 100% no-repeat; transition: opacity .3s;
 }
 .obj.shakeo { animation: shake .5s linear; }
+/* ouvert en fichier local (file://) : Chrome bloque les images en « mask » et du coup n'affiche plus du tout la photo
+   → pas de mask, les calques sont assombris avec un filtre (la transparence de l'image garde la forme), et pas de reflet */
+html.local .pack-layer, html.local .pack-back, html.local .olayer, html.local .oback {
+  -webkit-mask: none; mask: none; background: var(--pimg, var(--img)) center / 100% 100% no-repeat; filter: brightness(.3); }
+html.local .pack-back, html.local .oback { filter: brightness(.38) saturate(.6); }
+html.local .pack-glare, html.local .oglare, html.local .pack-top::after, html.local .pack-body::after { display: none; }
 .obj.lidoff .otop { transform: translateY(-140%) rotateX(55deg); opacity: 0; }
 .obj.lidoff .obot { transform: translateY(45%); opacity: 0; }
 .obj.lidoff .olayer, .obj.lidoff .oback, .obj.lidoff .oglare { opacity: 0; }
@@ -781,6 +787,7 @@ details.info > :not(summary) { margin-top: 10px; }
 
 <script src="data.js"></script>
 <script>
+if (location.protocol === 'file:') document.documentElement.classList.add('local');
 /* =====================================================================
    RARETÉS (toutes séries confondues)
    rank : 0-1 = carte normale · 2+ = hit (brille, bannière) · 4+ = flash + onde de choc
